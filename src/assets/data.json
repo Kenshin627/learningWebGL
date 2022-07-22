@@ -32,9 +32,9 @@
     "texture": {
         "buffer":{
             "vertices": [
-                -300, -300, 1.0, 0.0, 0.0,
-                0, 200, 0.0, 1.0, 0.0,
-                300, -300, 0.0, 0.0, 1.0
+                -300, -300, 1.0, 0.0, 0.0, 0.0, 0.0,
+                0, 200, 0.0, 1.0, 0.0 , 1.0, 2.0,
+                300, -300, 0.0, 0.0, 1.0, 2.0, 0.0
             ],
             "attris":[
                 {
@@ -46,16 +46,24 @@
                     "key": "a_color",
                     "size": 3,
                     "offset": 2
+                },
+                {
+                    "key": "a_texcoord",
+                    "size": 2,
+                    "offset": 5
                 }
             ],
-            "stride": 5,
+            "stride": 7,
             "uniform":[
                 {
                     "key": "matrixLocation",
                     "func": "uniformMatrix3fv",
                     "data": ""
                 }
-            ]
+            ],
+            "texture": {
+                "url": "./src/models/texture/wall.jpg"
+            }
         },
         "shader":"./src/shaders/texture"
     }
