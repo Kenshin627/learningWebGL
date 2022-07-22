@@ -1,0 +1,62 @@
+{
+    "triangle":{
+        "buffer":{
+            "vertices": [
+                -300, -300, 1.0, 0.0, 0.0,
+                0, 200, 0.0, 1.0, 0.0,
+                300, -300, 0.0, 0.0, 1.0
+            ],
+            "attris":[
+                {
+                    "key": "a_position",
+                    "size": 2,
+                    "offset": 0
+                },
+                {
+                    "key": "a_color",
+                    "size": 3,
+                    "offset": 2
+                }
+            ],
+            "stride": 5,
+            "uniform":[
+                {
+                    "key": "matrixLocation",
+                    "func": "uniformMatrix3fv",
+                    "data": ""
+                }
+            ]
+        },
+        "shader":"./src/shaders/triangle"
+    },
+    "texture": {
+        "buffer":{
+            "vertices": [
+                -300, -300, 1.0, 0.0, 0.0,
+                0, 200, 0.0, 1.0, 0.0,
+                300, -300, 0.0, 0.0, 1.0
+            ],
+            "attris":[
+                {
+                    "key": "a_position",
+                    "size": 2,
+                    "offset": 0
+                },
+                {
+                    "key": "a_color",
+                    "size": 3,
+                    "offset": 2
+                }
+            ],
+            "stride": 5,
+            "uniform":[
+                {
+                    "key": "matrixLocation",
+                    "func": "uniformMatrix3fv",
+                    "data": ""
+                }
+            ]
+        },
+        "shader":"./src/shaders/texture"
+    }
+}

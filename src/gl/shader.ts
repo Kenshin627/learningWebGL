@@ -1,13 +1,71 @@
-export class ShaderFactory {
-    static createShader (gl: WebGL2RenderingContext, type: number, source: string): WebGLShader {
-        let shader = gl.createShader(type) as WebGLShader;
-        gl.shaderSource(shader, source);
-        gl.compileShader(shader);
-        const success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
-        if (success) {
-            return shader;
+import { Nullable } from "../types";
+
+export class Shader {
+    public vertexCode: string = "";
+    public fragmentCode: string = "";
+    private _ctx: WebGL2RenderingContext;
+    private _program: Nullable<WebGLProgram> = null;
+    constructor(ctx: WebGL2RenderingContext){
+        this._ctx = ctx;
+    }
+
+    get program() {
+        return this._program;
+    }
+
+    /**
+     * 读取shader
+     * @param { string } path 
+     */
+    async readShader(path: string) {
+        try {
+            this.vertexCode = await (await fetch(`${path}/vertex.vs`)).text();
+            this.fragmentCode = await (await fetch(`${path}/fragment.fs`)).text();
+            return this;
+        } catch (error) {
+            throw new Error(`read shader Error: ${error}`);
+            
         }
-        gl.deleteShader(shader);
-        throw new Error(`error:${ gl.getShaderInfoLog(shader) }`);
+    }
+
+    compilerShader() {
+        //vertex
+        let vertex = this._ctx.createShader(this._ctx.VERTEX_SHADER) as WebGLShader;
+        this._ctx.shaderSource(vertex, this.vertexCode);
+        this._ctx.compileShader(vertex);
+        
+        //fragment
+        let fragment = this._ctx.createShader(this._ctx.FRAGMENT_SHADER) as WebGLShader;
+        this._ctx.shaderSource(fragment, this.fragmentCode);
+        this._ctx.compileShader(fragment);
+
+        const vertexSuccess = this._ctx.getShaderParameter(vertex, this._ctx.COMPILE_STATUS);
+        const fragmentSuccess = this._ctx.getShaderParameter(fragment, this._ctx.COMPILE_STATUS);        
+        const vertexErr = this._ctx.getShaderInfoLog(vertex);
+        const fragmentErr = this._ctx.getShaderInfoLog(fragment);
+
+        if (vertexSuccess && fragmentSuccess) {
+            const program = this._program = this._ctx.createProgram() as WebGLProgram;
+            this._ctx.attachShader(program, vertex);
+            this._ctx.attachShader(program, fragment);
+            this._ctx.linkProgram(program);
+            const success = this._ctx.getProgramParameter(program, this._ctx.LINK_STATUS);
+            if (!success) {                
+                this._ctx.deleteProgram(program);
+                throw new Error(`error: ${ this._ctx.getProgramInfoLog(program) }`);
+            }
+            return this;
+            
+        }else {
+            this._ctx.deleteShader(vertex);
+            this._ctx.deleteShader(fragment);
+            throw new Error(`compiler shader Error:${vertexErr}, ${fragmentErr}`)
+        }
+    }
+
+    use() {
+        if (this._program) {
+            this._ctx.useProgram(this._program);
+        }
     }
 }

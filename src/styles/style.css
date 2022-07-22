@@ -19,7 +19,24 @@ body{
 }
 .list {
   width: 40%;
+  margin-top: 3%;
 }
+
+.list ul {
+  list-style: none;
+  width: 50%;
+}
+
+.list ul li {
+  line-height: 2.5;
+  box-sizing: border-box;
+  border-bottom: 1px dotted #a9a9a96e;
+  color: #c4c3c3;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: "microsoft yahei";
+}
+
 .box{
   width: 60%;
   display: flex;
@@ -31,8 +48,8 @@ body{
 
 
 #webglBox {
-  width: 500px;
-  height: 500px;
-  border: 1px solid rgb(160 160 160);
-  background-color: #b6b6b6;
+  width: 800px;
+  height: 800px;
+  border: 2px solid rgb(215, 215, 215);
+  background-color: #272727;
 }
