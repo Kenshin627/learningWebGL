@@ -50,7 +50,9 @@ export class Shader {
             this._ctx.attachShader(program, fragment);
             this._ctx.linkProgram(program);
             const success = this._ctx.getProgramParameter(program, this._ctx.LINK_STATUS);
-            if (!success) {                
+            if (!success) {   
+                this._ctx.deleteShader(vertex);
+                this._ctx.deleteShader(fragment);             
                 this._ctx.deleteProgram(program);
                 throw new Error(`error: ${ this._ctx.getProgramInfoLog(program) }`);
             }
@@ -67,5 +69,9 @@ export class Shader {
         if (this._program) {
             this._ctx.useProgram(this._program);
         }
+    }
+
+    dispose(){
+        this._ctx.deleteProgram(this.program);
     }
 }

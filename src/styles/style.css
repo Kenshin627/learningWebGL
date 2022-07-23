@@ -48,8 +48,6 @@ body{
 
 
 #webglBox {
-  width: 800px;
-  height: 800px;
   border: 2px solid rgb(215, 215, 215);
   background-color: #272727;
 }

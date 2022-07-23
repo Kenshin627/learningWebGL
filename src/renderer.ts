@@ -15,6 +15,7 @@ export interface IVertices {
 export class Renderer {
     private _gl: WebGL2RenderingContext;
     private _shader: Nullable<Shader> = null;
+    private _currentRAF: Nullable<number> = null;
     public camera: Nullable<Camera> = null;
     constructor(el: HTMLCanvasElement) {
         let glOpts: WebGLContextAttributes = {
@@ -32,13 +33,21 @@ export class Renderer {
     }
 
     async compiler(shaderPath: string, data: IVertices) {
+        //TODO:DISPSOE
+        if (this._currentRAF) {
+            cancelAnimationFrame(this._currentRAF);
+            this._currentRAF = null;
+        }
         //TODO:CAMERA
         const position = vec3.create();
         const direction = vec3.create();
         const up = vec3.create();
-        this.camera = new Camera(vec3.set(position, 0, 0, 0), vec3.set(direction, 0, 0, -1), vec3.set(up, 0, 1, 0));
-        this.camera.perspective(glMatrix.toRadian(45), this._gl.canvas.width / this._gl.canvas.height, 10, 1000);
-        //TODO:PROGRAM
+        vec3.set(position, 100, 100, -200);
+        vec3.set(direction, 0, 0, -1);
+        vec3.set(up, 0, 1, 0);
+        this.camera = new Camera(position, direction, up);
+        this.camera.perspective(glMatrix.toRadian(60), this._gl.canvas.width / this._gl.canvas.height, 1, 1000);
+        //TODO:PROGRA
         const shader = this._shader = new Shader(this._gl);
         await shader.readShader(shaderPath);
         shader.compilerShader();
@@ -68,19 +77,26 @@ export class Renderer {
                 this._gl.generateMipmap(this._gl.TEXTURE_2D);
             })
         }
-
-        this.draw(data);
+        this._currentRAF = requestAnimationFrame(this.draw.bind(this, data, 0));
     } 
 
-    draw(data: IVertices) {
+    draw(data: IVertices, rotationRadian: number) {
+
+        rotationRadian += (glMatrix.toRadian(15)) / 60;
         this._gl.viewport(0, 0, this._gl.canvas.width, this._gl.canvas.height);
         this._gl.clearColor(0, 0, 0, 0);
         this._gl.clear(this._gl.COLOR_BUFFER_BIT | this._gl.DEPTH_BUFFER_BIT);
         const program = this._shader?.program as WebGLProgram;
+        this._gl.enable(this._gl.DEPTH_TEST);
+        // this._gl.enable(this._gl.CULL_FACE);
         let matrixLocation = this._gl.getUniformLocation(program, "u_matrix");
         this._shader?.use();
-        this._gl.uniformMatrix3fv(matrixLocation, false, mat4.multiply(this.camera?.projection,this.camera?.lookAt));
+        let viewProjection = mat4.create();
+        let r = mat4.create();
+        mat4.fromYRotation(r, rotationRadian);
+        mat4.multiply(viewProjection, this.camera?.projection as mat4, mat4.multiply(mat4.create(), this.camera?.lookAt as mat4, r));
+        this._gl.uniformMatrix4fv(matrixLocation, false, viewProjection);
         this._gl.drawArrays(this._gl.TRIANGLES, 0, data.vertices.length / data.stride);
-        requestAnimationFrame(this.draw.bind(this, data));
+        this._currentRAF = requestAnimationFrame(this.draw.bind(this, data, rotationRadian));
     }
 }

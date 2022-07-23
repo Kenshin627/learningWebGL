@@ -5,7 +5,7 @@ export class Camera {
     constructor(position: vec3, direction: vec3, up: vec3) {
         this.lookAt = mat4.create();
         this.projection = mat4.create();
-        mat4.lookAt(this.lookAt, direction, position, up)
+        mat4.lookAt(this.lookAt, position, direction, up)
     }
     orthor(left: number, right: number, bottom: number, top: number, near: number, far: number) {
         mat4.ortho(this.projection, left,right,bottom,top, near, far);
