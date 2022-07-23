@@ -2,6 +2,7 @@ import { Nullable } from './types/index';
 import { Shader } from './gl/shader';
 import { Camera } from './gl/camera';
 import { glMatrix, mat4, vec3 } from 'gl-matrix';
+import { Light } from './gl/light';
 
 export interface IVertices {
     vertices: number[];
@@ -17,6 +18,7 @@ export class Renderer {
     private _shader: Nullable<Shader> = null;
     private _currentRAF: Nullable<number> = null;
     public camera: Nullable<Camera> = null;
+    public light: Nullable<Light> = null;
     constructor(el: HTMLCanvasElement) {
         let glOpts: WebGLContextAttributes = {
             alpha: true,
@@ -38,6 +40,10 @@ export class Renderer {
             cancelAnimationFrame(this._currentRAF);
             this._currentRAF = null;
         }
+
+        //TODO: LIGHT
+        this.light = new Light(vec3.fromValues(1.0, 1.0, 1.0), vec3.normalize(vec3.create(), vec3.fromValues(.5, .7, 1.0)), .7, .1)
+        
         //TODO:CAMERA
         const position = vec3.create();
         const direction = vec3.create();
@@ -89,13 +95,26 @@ export class Renderer {
         const program = this._shader?.program as WebGLProgram;
         this._gl.enable(this._gl.DEPTH_TEST);
         // this._gl.enable(this._gl.CULL_FACE);
-        let matrixLocation = this._gl.getUniformLocation(program, "u_matrix");
+        let modelLocation = this._gl.getUniformLocation(program, "u_model");
+        let timodelLocation = this._gl.getUniformLocation(program, "u_timodel");
+        let matrixLocation = this._gl.getUniformLocation(program, "u_viewprojection");
+        let lightDir = this._gl.getUniformLocation(program, "u_lightDir");
+        let lightColor = this._gl.getUniformLocation(program, "u_lightColor")
+        let lightIntensity = this._gl.getUniformLocation(program, "u_lightIntensity");
+        let ambient = this._gl.getUniformLocation(program, "u_ambient");
         this._shader?.use();
         let viewProjection = mat4.create();
-        let r = mat4.create();
-        mat4.fromYRotation(r, rotationRadian);
-        mat4.multiply(viewProjection, this.camera?.projection as mat4, mat4.multiply(mat4.create(), this.camera?.lookAt as mat4, r));
+        let rotationMatrix = mat4.create();
+        let tranposeinvertModel = mat4.create();
+        mat4.fromYRotation(rotationMatrix, rotationRadian);
+        mat4.multiply(viewProjection, this.camera?.projection as mat4, this.camera?.lookAt as mat4);
+        this._gl.uniformMatrix4fv(modelLocation, false, rotationMatrix);
+        this._gl.uniformMatrix4fv(timodelLocation, false, mat4.transpose(tranposeinvertModel, mat4.invert(tranposeinvertModel,rotationMatrix)));
         this._gl.uniformMatrix4fv(matrixLocation, false, viewProjection);
+        this._gl.uniform3f(lightDir, this.light?.direction[0] as number, this.light?.direction[1] as number, this.light?.direction[2] as number);
+        this._gl.uniform3f(lightColor, this.light?.color[0] as number, this.light?.color[1] as number, this.light?.color[2] as number);
+        this._gl.uniform1f(lightIntensity, this.light?.intensity as number);
+        this._gl.uniform1f(ambient, this.light?.ambient as number);
         this._gl.drawArrays(this._gl.TRIANGLES, 0, data.vertices.length / data.stride);
         this._currentRAF = requestAnimationFrame(this.draw.bind(this, data, rotationRadian));
     }
