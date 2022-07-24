@@ -5,6 +5,7 @@ in vec2 a_texcoord;
 
 out vec4 v_color;
 out vec2 texcoord;
+uniform vec3 view_position;
 uniform mat4 u_view;
 uniform mat4 u_projection;
 

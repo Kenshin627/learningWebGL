@@ -1,5 +1,5 @@
 import './styles/style.css';
-import { Renderer, IVertices, n3, cameraOptions } from "./renderer";
+import { Renderer, IVertices, cameraOptions } from "./renderer";
 import json from './assets/data.json';
 
 type listType = Record<string, { buffer: IVertices, shader: string, camera?: cameraOptions }>;

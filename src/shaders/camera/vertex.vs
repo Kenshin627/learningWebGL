@@ -10,6 +10,7 @@ out vec2 texcoord;
 out vec3 position;
 out vec3 normal;
 
+uniform vec3 view_position;
 uniform vec3 u_lightDir;
 uniform vec3 u_lightColor;
 uniform float u_lightIntensity;
