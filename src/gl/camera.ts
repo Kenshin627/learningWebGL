@@ -2,7 +2,9 @@ import { mat4, vec3 } from "gl-matrix";
 export class Camera {
     public lookAt: mat4;
     public projection: mat4;
+    public position: vec3;
     constructor(position: vec3, direction: vec3, up: vec3) {
+        this.position = position;
         this.lookAt = mat4.create();
         this.projection = mat4.create();
         mat4.lookAt(this.lookAt, position, direction, up)

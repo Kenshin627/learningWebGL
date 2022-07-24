@@ -16,6 +16,6 @@ uniform sampler2D sampler;
 void main(){
 
     float diffuse = max(0.0, dot(u_lightDir, normal));
-    vec4 c = vec4(u_lightColor * (diffuse + u_ambient) * u_lightIntensity , 1.0);
-    outColor = texture(sampler, texcoord) * c;
+    // vec4 c = vec4(u_lightColor * (diffuse + u_ambient) * u_lightIntensity , 1.0);
+    outColor = texture(sampler, texcoord);
 }
