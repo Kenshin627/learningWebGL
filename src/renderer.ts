@@ -44,7 +44,7 @@ export class Renderer {
         }
 
         //TODO: LIGHT
-        this.light = new Light(vec3.fromValues(1.0, 1.0, 1.0), vec3.normalize(vec3.create(), vec3.fromValues(-.5, -.7, -1.0)), .5, .1)
+        this.light = new Light(vec3.fromValues(1.0, 1.0, 1.0), vec3.normalize(vec3.create(), vec3.fromValues(-.5, -.7, -1.0)), 1.)
         
         //TODO:CAMERA
         this.camera = new Camera(vec3.fromValues(0, 0, -200), vec3.fromValues(0, 0, -1), vec3.fromValues(0, 1, 0));
@@ -53,7 +53,7 @@ export class Renderer {
             this.camera = new Camera(vec3.fromValues(...position), vec3.fromValues(...direction), vec3.fromValues(...up));
         }
         this.camera.perspective(glMatrix.toRadian(60), this._gl.canvas.width / this._gl.canvas.height, 1, 1000);
-        //TODO:PROGRA
+        //TODO:PROGRAM
         const shader = this._shader = new Shader(this._gl);
         await shader.readShader(meshshader);
         shader.compilerShader();
@@ -70,21 +70,33 @@ export class Renderer {
             this._gl.vertexAttribPointer(itemLocation, attr.size, this._gl.FLOAT, false, geometry.stride *4 , attr.offset * 4)
         })
 
-        if (material.textures && material.textures.length) {
-            const texture = this._gl.createTexture();
-            this._gl.activeTexture(this._gl.TEXTURE0 + 0);
-            let img = new Image();
-            img.src = material.textures[0];
-            img.addEventListener("load", () => {
-                this._gl.bindTexture(this._gl.TEXTURE_2D, texture);
-                this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_WRAP_S, this._gl.REPEAT);
-                this._gl.texParameteri(this._gl.TEXTURE_2D,this._gl.TEXTURE_WRAP_T, this._gl.REPEAT);
-                this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGB, img.width, img.height, 0, this._gl.RGB, this._gl.UNSIGNED_BYTE,img)
-                this._gl.generateMipmap(this._gl.TEXTURE_2D);
-            })
+        //TODO:TEXTURE
+        if (material.diffuseTexture) {
+            this.bindTexture(material.diffuseTexture, this._gl.TEXTURE0);
+        }
+        if (material.specularTexture) {
+            this.bindTexture(material.specularTexture, this._gl.TEXTURE1);
+        }
+        if (material.emmisiveTexture) {
+            this.bindTexture(material.emmisiveTexture, this._gl.TEXTURE2);
         }
         this._currentRAF = requestAnimationFrame(this.draw.bind(this, geometry, material, 0));
-    } 
+    }
+    
+    bindTexture(url: string, idx: number) {
+        const texture = this._gl.createTexture();
+        let img = new Image();
+        img.src = url;
+        img.addEventListener("load", () => {
+            this._gl.activeTexture(idx);
+            this._gl.bindTexture(this._gl.TEXTURE_2D, texture);
+            this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_WRAP_S, this._gl.REPEAT);
+            this._gl.texParameteri(this._gl.TEXTURE_2D,this._gl.TEXTURE_WRAP_T, this._gl.REPEAT);
+            this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGB, img.width, img.height, 0, this._gl.RGB, this._gl.UNSIGNED_BYTE,img)
+            this._gl.generateMipmap(this._gl.TEXTURE_2D);
+        })
+        
+    }
 
     draw(data: Geometry, material: Material, rotationRadian: number) {
         rotationRadian += (glMatrix.toRadian(15)) / 60;
@@ -120,6 +132,9 @@ export class Renderer {
 
         this._shader?.setVec3("view_position", this.camera?.position as vec3);
 
+        this._shader?.setInt("material.dsampler", 0);
+        this._shader?.setInt("material.ssampler", 1);
+        this._shader?.setInt("material.esampler", 2);
         this._gl.drawArrays(this._gl.TRIANGLES, 0, data.vertices.length / data.stride);
 
         this._currentRAF = requestAnimationFrame(this.draw.bind(this, data, material, rotationRadian));

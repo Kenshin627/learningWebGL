@@ -6,10 +6,18 @@ import { vec3 } from "gl-matrix";
 const defaultMaterial = new Material(vec3.fromValues(0.1, 0.1, 0.1), vec3.fromValues(0.5, 0.5, 0.5), vec3.fromValues(1.0, 1.0, 1.0), 32);
 
 const t =  new Material(vec3.fromValues(0.1, 0.1, 0.1), vec3.fromValues(0.5, 0.5, 0.5), vec3.fromValues(1.0, 1.0, 1.0), 64);
-t.textures = ["./src/models/texture/wall.jpg"];
+t.diffuseTexture = "./src/models/texture/wall.jpg";
 
-const c = new Material(vec3.fromValues(0.1, 0.1, 0.1), vec3.fromValues(0.5, 0.5, 0.5), vec3.fromValues(1.0, 1.0, 1.0), 32);
-c.textures = ["./src/models/texture/container.jpg"];
+const c = new Material(vec3.fromValues(0.1, 0.1, 0.1), vec3.fromValues(0.5, 0.5, 0.5), vec3.fromValues(1.0, 1.0, 1.0), 64);
+c.diffuseTexture = "./src/models/texture/container.jpg";
+
+const m = new Material(vec3.fromValues(0.1, 0.1, 0.1), vec3.fromValues(0.5, 0.5, 0.5), vec3.fromValues(1.0, 1.0, 1.0), 64);
+m.diffuseTexture = "./src/models/texture/container2.png";
+m.specularTexture = "./src/models/texture/container2_specular.png";
+
+const e = new Material(vec3.fromValues(0.1, 0.1, 0.1), vec3.fromValues(0.5, 0.5, 0.5), vec3.fromValues(1.0, 1.0, 1.0), 16);
+e.emmisiveTexture = "./src/models/texture/matrix.jpg";
+e.specularTexture = "./src/models/texture/lighting_maps_specular_color.png";
 
 let cubeGeo = new Geometry([
     -50, -50, -50,  0.0, 0.0, 0.0, 0.0, -1,
@@ -145,5 +153,15 @@ export const meshes: Record<string, Mesh> = {
         geometry: cubeGeo,
         shader: "./src/shaders/blinnPhong",
         material: c
+    },
+    "material": {
+        geometry: cubeGeo,
+        shader: "./src/shaders/material",
+        material: m
+    },
+    "emmisive": {
+        geometry: cubeGeo,
+        shader: "./src/shaders/emmisive",
+        material: e
     }
 }

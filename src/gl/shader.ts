@@ -87,6 +87,13 @@ export class Shader {
         }
     }
 
+    setInt(name: string, val: number) {
+        const uniformLocation = this._ctx.getUniformLocation(this.program as WebGLProgram, name);
+        if (uniformLocation) {
+            this._ctx.uniform1i(uniformLocation, val);
+        }
+    }
+
     use() {
         if (this._program) {
             this._ctx.useProgram(this._program);

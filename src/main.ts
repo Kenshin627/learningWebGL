@@ -16,7 +16,16 @@ let cameraData: Record<string, cameraOptions> = {
         "direction": [0, 0, -1],
         "up": [0, 1, 0]
     },
-    
+    "material": {
+        "position": [100, 100, -200],
+        "direction": [0, 0, -1],
+        "up": [0, 1, 0]
+    },
+    "emmisive": {
+        "position": [100, 100, -200],
+        "direction": [0, 0, -1],
+        "up": [0, 1, 0]
+    }
 }
 d?.addEventListener("click", e => {
     const key = (e.target as any).id as string; 
