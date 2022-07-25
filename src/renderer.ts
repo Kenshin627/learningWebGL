@@ -5,6 +5,7 @@ import { glMatrix, mat4, vec3 } from 'gl-matrix';
 import { Light } from './gl/light';
 import { Geometry } from './gl/geometry';
 import { Mesh } from './gl/mesh';
+import { Material } from './gl/material';
 
 export interface cameraOptions {
     position: n3<number>,
@@ -82,10 +83,10 @@ export class Renderer {
                 this._gl.generateMipmap(this._gl.TEXTURE_2D);
             })
         }
-        this._currentRAF = requestAnimationFrame(this.draw.bind(this, geometry, 0));
+        this._currentRAF = requestAnimationFrame(this.draw.bind(this, geometry, material, 0));
     } 
 
-    draw(data: Geometry, rotationRadian: number) {
+    draw(data: Geometry, material: Material, rotationRadian: number) {
         rotationRadian += (glMatrix.toRadian(15)) / 60;
         this._gl.viewport(0, 0, this._gl.canvas.width, this._gl.canvas.height);
         this._gl.clearColor(0, 0, 0, 0);
@@ -109,14 +110,18 @@ export class Renderer {
         this._shader?.setMatrix4x4("u_timodel", normalMatrix);
         this._shader?.setMatrix4x4("u_view", this.camera?.lookAt as mat4);
         this._shader?.setMatrix4x4("u_projection", this.camera?.projection as mat4);
-        this._shader?.setVec3("u_lightDir", this.light?.direction as vec3);
-        this._shader?.setVec3("u_lightColor", this.light?.color as vec3);
-        this._shader?.setFloat("u_lightIntensity", this.light?.intensity as number);
-        this._shader?.setFloat("u_ambient", this.light?.ambient as number);
+        this._shader?.setVec3("light.dir", this.light?.direction as vec3);
+        this._shader?.setVec3("light.color", this.light?.color as vec3);
+        this._shader?.setFloat("light.intensity", this.light?.intensity as number);
+        this._shader?.setVec3("material.diffuse", material.diffuse);
+        this._shader?.setVec3("material.specular", material.specular);
+        this._shader?.setVec3("material.ambient", material.ambient);
+        this._shader?.setFloat("material.shininess", material.shininess);
+
         this._shader?.setVec3("view_position", this.camera?.position as vec3);
 
         this._gl.drawArrays(this._gl.TRIANGLES, 0, data.vertices.length / data.stride);
 
-        this._currentRAF = requestAnimationFrame(this.draw.bind(this, data, rotationRadian));
+        this._currentRAF = requestAnimationFrame(this.draw.bind(this, data, material, rotationRadian));
     }
 }

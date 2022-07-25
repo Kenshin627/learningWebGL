@@ -5,7 +5,7 @@ import { vec3 } from "gl-matrix";
 
 const defaultMaterial = new Material(vec3.fromValues(0.1, 0.1, 0.1), vec3.fromValues(0.5, 0.5, 0.5), vec3.fromValues(1.0, 1.0, 1.0), 32);
 
-const t =  new Material(vec3.fromValues(0.1, 0.1, 0.1), vec3.fromValues(0.5, 0.5, 0.5), vec3.fromValues(1.0, 1.0, 1.0), 32);
+const t =  new Material(vec3.fromValues(0.1, 0.1, 0.1), vec3.fromValues(0.5, 0.5, 0.5), vec3.fromValues(1.0, 1.0, 1.0), 64);
 t.textures = ["./src/models/texture/wall.jpg"];
 
 const c = new Material(vec3.fromValues(0.1, 0.1, 0.1), vec3.fromValues(0.5, 0.5, 0.5), vec3.fromValues(1.0, 1.0, 1.0), 32);
