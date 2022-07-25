@@ -1,4 +1,5 @@
 import { Nullable } from "../types";
+import { vec3, mat4 } from "gl-matrix";
 
 export class Shader {
     public vertexCode: string = "";
@@ -62,6 +63,27 @@ export class Shader {
             this._ctx.deleteShader(vertex);
             this._ctx.deleteShader(fragment);
             throw new Error(`compiler shader Error:${vertexErr}, ${fragmentErr}`)
+        }
+    }
+
+    setFloat(name: string, val: number){
+        const uniformLocation = this._ctx.getUniformLocation(this.program as WebGLProgram, name);
+        if (uniformLocation) {
+            this._ctx.uniform1f(uniformLocation, val);
+        }
+    }
+
+    setVec3(name: string, val: vec3) {
+        const uniformLocation = this._ctx.getUniformLocation(this.program as WebGLProgram, name);
+        if (uniformLocation) {
+            this._ctx.uniform3f(uniformLocation, val[0], val[1], val[2]);
+        }
+    }
+
+    setMatrix4x4(name: string, matrix: mat4) {
+        const uniformLocation = this._ctx.getUniformLocation(this.program as WebGLProgram, name);
+        if (uniformLocation) {
+            this._ctx.uniformMatrix4fv(uniformLocation, false, matrix);
         }
     }
 
