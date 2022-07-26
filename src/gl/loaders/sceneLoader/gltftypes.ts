@@ -983,11 +983,11 @@ export class GLTF {
 	public meshes				?: Mesh[];
 	public accessors			?: Accessor[];
 	public bufferViews			?: BufferView[];
-	public buffers				?: ArrayBuffer[];
+	public buffers				 : ArrayBuffer[];
 	public animations			?: Animation[];
 	public cameras				?: Camera[];
 	public textures			?: Texture[];
-	public images				?: (ImageBitmap | ImageData |  HTMLImageElement)[];
+	public images				 : (ImageBitmap | ImageData |  HTMLImageElement)[];
 	public samplers			?: Sampler[];
 	public materials			?: Material[];
 	public skins				?: (Skin | SkinLink)[];
@@ -1002,11 +1002,11 @@ export class GLTF {
 		this.meshes				= (glTFBase.meshes				!== undefined) ? []								: undefined;
 		this.accessors			= (glTFBase.accessors			!== undefined) ? []								: undefined;
 		this.bufferViews		= (glTFBase.bufferViews			!== undefined) ? []								: undefined;
-		this.buffers			= (glTFBase.buffers				!== undefined) ? []								: undefined;
+		this.buffers			= [];
 		this.animations			= (glTFBase.animations			!== undefined) ? []								: undefined;
 		this.cameras			= (glTFBase.cameras				!== undefined) ? []								: undefined;
 		this.textures			= (glTFBase.textures			!== undefined) ? []								: undefined;
-		this.images				= (glTFBase.images				!== undefined) ? []								: undefined;
+		this.images				= [];
 		this.samplers			= (glTFBase.samplers			!== undefined) ? []								: undefined;
 		this.materials			= (glTFBase.materials			!== undefined) ? []								: undefined;
 		this.skins				= (glTFBase.skins				!== undefined) ? []								: undefined;

@@ -71,4 +71,72 @@ export class GLTFLoader {
         }
     }
 
+    public async loadGLTF(uri: string): Promise<GLTF> {
+        this.baseUri = this.getBaseUri(uri);
+        try {
+            const gltfBase:GLTFSource = await fetch(uri).then((response: Response) => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error("loading Error: Error occured in loading glTF JSON.");
+            })
+            this._glTFSource = gltfBase;
+            this.glTF = new GLTF(this._glTFSource);
+        } catch (error) {
+            throw new Error(`${error}`);
+        }
+        const loadBuffer: Promise<boolean> = new Promise<boolean>(async (resolve) => {
+            if (this._glTFSource.buffers) {
+                const bufferPromise: Promise<ArrayBuffer>[] = []
+                for (const bufferInfo of this._glTFSource.buffers) {
+                    try {
+                        bufferPromise.push(fetch(bufferInfo.uri as string).then((response: Response) => {
+                            if (response.ok) {
+                                return response.arrayBuffer();
+                            }
+                            throw new Error(`loadingError: Error ocured in loading buffers.`)
+                        }))
+                    } catch (error) {
+                        console.error(error);
+                    }
+                }
+                for (const [bufferID, bufferPending] of bufferPromise.entries()) {
+                    this.glTF.buffers[bufferID] = await bufferPending;
+                }
+            }
+            resolve(true);
+        })
+
+        const loadImage: Promise<boolean> = new Promise<boolean>(async(resolve) => {
+            if (this._glTFSource.images) {
+                const ImagePromise: Promise<ImageBitmap>[] = [];
+                for (const imageInfo of this._glTFSource.images) {
+                    try {
+                        ImagePromise.push(fetch(imageInfo.uri as string).then((response: Response) => {
+                            if (response.ok) {
+                                return response.blob();
+                            }
+                            throw new Error("loading Error: Error ocured in loading images.");
+                            
+                        }).then((blob: Blob) => {
+                            return createImageBitmap(blob);
+                        }))
+                    } catch (error) {
+                        console.error(error);
+                    }
+                }
+
+                for (const [imageID, imagePending] of ImagePromise.entries()) {
+                    this.glTF.images[imageID] = await imagePending;
+                }
+            }
+            resolve(true);
+        });
+
+        await loadBuffer;
+        await loadImage;
+        this.postProcess();
+        return this.glTF;
+    }
+
 }
