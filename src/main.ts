@@ -1,10 +1,11 @@
 import './styles/style.css';
 import { Renderer, cameraOptions } from "./renderer";
 import { meshes } from "./models/mesh/meshData";
+import { FileType, SceneLoader } from "./gl/loaders/sceneLoader/index";
 
 let renderer = new Renderer(document.querySelector("#webglBox")as HTMLCanvasElement);
 let d = document.querySelector(".list-ul");
-
+let loader = new SceneLoader();
 let cameraData: Record<string, cameraOptions> = {
     "camera": {
         "position": [100, 100, -200],
@@ -29,7 +30,13 @@ let cameraData: Record<string, cameraOptions> = {
 }
 d?.addEventListener("click", e => {
     const key = (e.target as any).id as string; 
-    if (meshes[key]) {      
-        renderer.compiler(meshes[key], cameraData[key]);
+    if (key === "gltfLoader") {
+        loader.loadScene(FileType.GLTF, "./src/models/gltf/troll.gltf").then( data => {
+            debugger
+        })
+    }else {
+        if (meshes[key]) {
+            renderer.compiler(meshes[key], cameraData[key]);
+        }
     }
 })
