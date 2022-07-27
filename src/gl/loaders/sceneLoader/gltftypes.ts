@@ -348,7 +348,7 @@ export interface GLTFSource {
 
 //GLTF
 
-class Scene {
+export class Scene {
 	nodes		:  Node[];
 	name?		:  string | null;
 	extensions	:  any;
@@ -403,7 +403,7 @@ export class BoundingBox {
 		this.transform[14]	= this.min[2];
 	};
 }
-class Accessor {
+export class Accessor {
 	bufferView		:  BufferView;
 	byteOffset		:  number;
 	componentType	:  AccessorComponentType;
@@ -472,7 +472,7 @@ export class BufferView {
 		gl.bindBuffer(target, null);
 	}
 }
-class Camera {
+export class Camera {
 	orthographic?	:  CameraOrthographicBase;
 	perspective?	:  CameraPerspectiveBase
 	type			:  "perspective" | "orthographic";
@@ -554,7 +554,7 @@ export class Node {
 		traverseFunctionPostOrder(this, parent);
 	};
 }
-class Mesh {
+export class Mesh {
 	primitives	:  MeshPrimitive[];
 	weights?	:  number[];
 	name?		:  string;
@@ -661,7 +661,7 @@ export class MeshPrimitive {
 		this.extras		= (primitiveBase.extras		!== undefined) ? primitiveBase.extras		: null;
 	}
 }
-class Texture {
+export class Texture {
 	sampler?		:  Sampler;
 	source?		:  ImageBitmap | ImageData | HTMLImageElement;
 	name?		:  string;
@@ -690,7 +690,7 @@ class Texture {
 		gl.bindTexture(gl.TEXTURE_2D, null);
 	}
 }
-class Sampler {
+export class Sampler {
 	magFilter?	:  SamplerMagnificationFilter;
 	minFilter?	:  SamplerMinificationFilter;
 	wrapS		:  SamplerWrappingMode;
@@ -724,7 +724,7 @@ class Sampler {
 		gl.samplerParameteri(this.sampler, gl.TEXTURE_WRAP_T, this.wrapT);
 	}
 }
-class TextureInfo {
+export class TextureInfo {
 	index		:  GLTFID;
 	texCoord	:  number;
 	extensions	:  any;
@@ -736,7 +736,7 @@ class TextureInfo {
 		this.extras		= (textureInfoBase.extras		!== undefined) ? textureInfoBase.extras		: null;
 	}
 }
-class Material {
+export class Material {
 	name?					:  string;
 	extensions				:  any;
 	extras					:  any;
@@ -768,7 +768,7 @@ class Material {
 		this.doubleSided			= !!materialBase.doubleSided;
 	}
 }
-class MaterialPbrMetallicRoughness {
+export class MaterialPbrMetallicRoughness {
 	baseColorFactor				:  number[];
 	baseColorTexture?			:  TextureInfoBase;
 	metallicFactor				:  number;
@@ -786,7 +786,7 @@ class MaterialPbrMetallicRoughness {
 		this.extras						= (materialPbrMetallicRoughnessBase.extras						!== undefined) ? materialPbrMetallicRoughnessBase.extras			: null;
 	}
 }
-class MaterialNormalTextureInfo {
+export class MaterialNormalTextureInfo {
 	index		:  any;
 	texCoord	:  any;
 	scale		:  number;
@@ -800,7 +800,7 @@ class MaterialNormalTextureInfo {
 		this.extras		= (materialNormalTextureInfoBase.extras		!== undefined) ? materialNormalTextureInfoBase.extras		: null;
 	}
 }
-class MaterialOcclusionTextureInfo {
+export class MaterialOcclusionTextureInfo {
 	index		:  any;
 	texCoord	:  any;
 	strength	:  number;
@@ -814,7 +814,7 @@ class MaterialOcclusionTextureInfo {
 		this.extras		= (materialOcclusionTextureInfoBase.extras		!== undefined) ? materialOcclusionTextureInfoBase.extras		: null;
 	}
 }
-class Skin {
+export class Skin {
 	inverseBindMatrices?				:  Accessor;
 	skeleton?						:  Node;
 	joints							:  Node[];
@@ -851,7 +851,7 @@ class Skin {
 		}
 	}
 }
-class SkinLink {
+export class SkinLink {
 	inverseBindMatrices?				:  Accessor;
 	skeleton?						:  Node;
 	joints							:  Node[];
@@ -921,7 +921,7 @@ export class AnimationChannel {
 		this.extras		= (animationChannelBase.extras		!== undefined) ? animationChannelBase.extras		: null;
 	}
 }
-class AnimationChannelTarget {
+export class AnimationChannelTarget {
 	node		:  Node | undefined;
 	path		:  "translation" | "rotation" | "scale" | "weights";
 	extensions	:  any;
@@ -978,38 +978,38 @@ export class AnimationSampler {
 export class GLTF {
 	public asset				:  AssetBase;
 	public scene				?: Scene;
-	public scenes				?: Scene[];
-	public nodes				?: Node[];
-	public meshes				?: Mesh[];
-	public accessors			?: Accessor[];
-	public bufferViews			?: BufferView[];
-	public buffers				 : ArrayBuffer[];
-	public animations			?: Animation[];
-	public cameras				?: Camera[];
-	public textures			?: Texture[];
-	public images				 : (ImageBitmap | ImageData |  HTMLImageElement)[];
-	public samplers			?: Sampler[];
-	public materials			?: Material[];
-	public skins				?: (Skin | SkinLink)[];
+	public scenes				: Scene[];
+	public nodes				: Node[];
+	public meshes				: Mesh[];
+	public accessors			: Accessor[];
+	public bufferViews			: BufferView[];
+	public buffers				: ArrayBuffer[];
+	public animations			: Animation[];
+	public cameras				: Camera[];
+	public textures			    : Texture[];
+	public images				: (ImageBitmap | ImageData |  HTMLImageElement)[];
+	public samplers			    : Sampler[];
+	public materials			: Material[];
+	public skins				: (Skin | SkinLink)[];
 	public extensions			?: any;
 	public extensionsUsed		?: string[];
 	public extensionsRequired	?: string[];
 	public extras				?: any;
 	constructor(glTFBase: GLTFSource) {
 		this.asset				=  glTFBase.asset;
-		this.scenes				= (glTFBase.scenes				!== undefined) ? []								: undefined;
-		this.nodes				= (glTFBase.nodes				!== undefined) ? []								: undefined;
-		this.meshes				= (glTFBase.meshes				!== undefined) ? []								: undefined;
-		this.accessors			= (glTFBase.accessors			!== undefined) ? []								: undefined;
-		this.bufferViews		= (glTFBase.bufferViews			!== undefined) ? []								: undefined;
+		this.scenes				= [];
+		this.nodes				= [];
+		this.meshes				= [];
+		this.accessors			= [];
+		this.bufferViews		= [];
 		this.buffers			= [];
-		this.animations			= (glTFBase.animations			!== undefined) ? []								: undefined;
-		this.cameras			= (glTFBase.cameras				!== undefined) ? []								: undefined;
-		this.textures			= (glTFBase.textures			!== undefined) ? []								: undefined;
+		this.animations			= [];
+		this.cameras			= [];
+		this.textures			= [];
 		this.images				= [];
-		this.samplers			= (glTFBase.samplers			!== undefined) ? []								: undefined;
-		this.materials			= (glTFBase.materials			!== undefined) ? []								: undefined;
-		this.skins				= (glTFBase.skins				!== undefined) ? []								: undefined;
+		this.samplers			= [];
+		this.materials			= [];
+		this.skins				= [];
 		this.extensions			= (glTFBase.extensions			!== undefined) ? glTFBase.extensions			: undefined;
 		this.extensionsUsed		= (glTFBase.extensionsUsed		!== undefined) ? glTFBase.extensionsUsed		: undefined;
 		this.extensionsRequired	= (glTFBase.extensionsRequired	!== undefined) ? glTFBase.extensionsRequired	: undefined;

@@ -2,12 +2,18 @@ import
 { 
     AccessorBase, 
     BufferViewBase, 
-    BufferBase, 
     BufferViewTarget, 
     GLTF, GLTFSource, 
     MeshBase, 
     MeshPrimitiveBase, 
-    BufferView 
+    BufferView,
+    Accessor,
+    Material,
+    Mesh,
+    Texture,
+    Camera,
+    Node,
+    Sampler 
 } 
 from "./gltftypes";
 
@@ -67,8 +73,50 @@ export class GLTFLoader {
         if (this._glTFSource.bufferViews) {
             for (let i = 0; i < this._glTFSource.bufferViews.length; i++) {
                 const bufferViewSource = this._glTFSource.bufferViews[i];
+                const bufferView = new BufferView(bufferViewSource, (this.glTF.buffers as ArrayBuffer[])[this._glTFSource.bufferViews[i].buffer]);
+                bufferView.createBuffer(this.context);
+                bufferView.bindData(this.context);
+                this.glTF.bufferViews?.push(bufferView);
             }
         }
+
+        // TODO: Accessor
+		if (this._glTFSource.accessors !== undefined) {
+			for (let i = 0; i < this._glTFSource.accessors.length; i++) {
+				this.glTF.accessors.push(new Accessor(this._glTFSource.accessors[i], this.glTF.bufferViews[this._glTFSource.accessors[i].bufferView as number]));
+			}
+		}
+		// TODO: Camera
+		if (this._glTFSource.cameras !== undefined) {
+			for (let i = 0; i < this._glTFSource.cameras.length; i++) {
+				this.glTF.cameras.push(new Camera(this._glTFSource.cameras[i]))
+			}
+		}
+		// TODO: Material
+		if (this._glTFSource.materials !== undefined) {
+			for (let i = 0; i < this._glTFSource.materials.length; i++) {
+				this.glTF.materials.push(new Material(this._glTFSource.materials[i]));
+			}
+		}
+		// TODO: Sampler
+		if (this._glTFSource.samplers !== undefined) {
+			for (let i = 0; i < this._glTFSource.samplers.length; i++) {
+				this.glTF.samplers.push(new Sampler(this._glTFSource.samplers[i]));
+			}
+		}
+		// TODO: Texture
+		if (this._glTFSource.textures !== undefined) {
+			for (let i = 0; i < this._glTFSource.textures.length; i++) {
+				this.glTF.textures.push(new Texture(this._glTFSource.textures[i], this));
+				this.glTF.textures[i].createTexture(this.context);
+			}
+		}
+		// TODO: Mesh
+		if (this._glTFSource.meshes !== undefined) {
+			for (let i = 0; i < this._glTFSource.meshes.length; i++) {
+				this.glTF.meshes.push(new Mesh(this._glTFSource.meshes[i], i, this));
+			}
+		}
     }
 
     public async loadGLTF(uri: string): Promise<GLTF> {
