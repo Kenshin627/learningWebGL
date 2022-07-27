@@ -19,7 +19,9 @@ import
     NodeBase,
     SceneBase,
     Scene,
-    BoundingBox
+    BoundingBox,
+    Skin,
+    Animation
 } 
 from "./gltftypes";
 
@@ -144,10 +146,10 @@ export class GLTFLoader {
                 _scene.boundingBox = new BoundingBox();
                 this.glTF.scenes[idx] = _scene;
                 const nodeMatrices: mat4[] = [];
-                _scene.nodes.forEach((node: Node, idx: number) => {
+                _scene.nodes.forEach((node: Node) => {
                     node.traverseTwoFunction((node: Node, parent?: Node) =>{
                         if (parent) {
-                            nodeMatrices[node.nodeID] = mat4.multiply(nodeMatrices[node.nodeID], parent.modelMatrix, node.modelMatrix)
+                            nodeMatrices[node.nodeID] = mat4.multiply(nodeMatrices[node.nodeID], nodeMatrices[parent.nodeID], node.modelMatrix)
                         }else {
                             nodeMatrices[node.nodeID] = mat4.clone(node.modelMatrix);
                         }
@@ -159,16 +161,58 @@ export class GLTFLoader {
                                 node.aabb = getAABBFromOBB(node.mesh.boundingBox, node.worldMatrix);
                                 if (node.children.length === 0) {
                                     node.bvh.min = vec3.clone(node.aabb.min);
-                                    node.bvh.max = vec3.clone(node.bvh.max);
+                                    node.bvh.max = vec3.clone(node.aabb.max);
                                 }
                             }
                         }
+                        if (parent) {
+                            parent.bvh.min = vec3.min(parent.bvh.min, parent.bvh.min, node.bvh.min);
+                            parent.bvh.max = vec3.max(parent.bvh.max, parent.bvh.max, node.bvh.max);
+                        }else {
+                            vec3.min((_scene.boundingBox as BoundingBox).min, (_scene.boundingBox as BoundingBox).min, node.bvh.min);
+                            vec3.max((_scene.boundingBox as BoundingBox).max, (_scene.boundingBox as BoundingBox).max, node.bvh.max);
+                        }
                     })
                 })
-
-
+                _scene.boundingBox.calculateTransform();
+            })
+            if (this._glTFSource.scene) {
+                this.glTF.scene = this.glTF.scenes[this._glTFSource.scene];
+            }else {
+                this.glTF.scene = this.glTF.scenes[0];
+            }
+            this.glTF.nodes.forEach(node => {
+                if (node.bvh) {
+                    node.bvh.calculateTransform();
+                }
             })
         }
+
+        //TODO: Animation
+		if (this._glTFSource.animations) {
+			for (let i = 0; i < this._glTFSource.animations.length; i++) {
+				this.glTF.animations.push(new Animation(this._glTFSource.animations[i], this.glTF));
+				this.glTF.animations[i].channels.forEach((channel) => {
+					channel.target.node = this.glTF.nodes[channel.target.nodeID as number];
+				})
+			}
+		}
+		//TODO: Skin
+		if (this._glTFSource.skins) {
+			for (let i = 0; i < this._glTFSource.skins.length; i++) {
+				this.glTF.skins.push(new Skin(this._glTFSource.skins[i], this.glTF));
+			}
+			for (let i = 0; i < this.glTF.nodes.length; i++) {
+				if (this.glTF.nodes[i].skin !== null) {
+					if (typeof (this._glTFSource.nodes as NodeBase[])[this.glTF.nodes[i].nodeID].skin) {
+						// usual skin, hook up
+						this.glTF.nodes[i].skin = this.glTF.skins[(this._glTFSource.nodes as NodeBase[])[this.glTF.nodes[i].nodeID].skin as number];
+					} else {
+						// assume gl_avatar is in use then do nothing
+					}
+				}
+			}
+		}
     }
 
     public async loadGLTF(uri: string): Promise<GLTF> {
@@ -238,5 +282,4 @@ export class GLTFLoader {
         this.postProcess();
         return this.glTF;
     }
-
 }

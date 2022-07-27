@@ -651,12 +651,12 @@ export class MeshPrimitive {
 		this.material	= (primitiveBase.material !== undefined) ? (gltf.materials as Material[])[primitiveBase.material] : undefined;
 		this.mode		= (primitiveBase.mode !== undefined) ? primitiveBase.mode			: MeshPrimitiveType.TRIANGLES;
 		this.targetsID	= primitiveBase.targets;
-		for (let targetID in this.targetsID) {
-			const currentTarget = {POSITION : null , NORMAL : null, TEXCOORD_0 : null};
-			// for (let attributeName in targetID) {
-			// 	this.targets
-			// }
-		}
+		// for (let targetID in this.targetsID) {
+		// 	const currentTarget = {POSITION : null , NORMAL : null, TEXCOORD_0 : null};
+		// 	// for (let attributeName in targetID) {
+		// 	// 	this.targets
+		// 	// }
+		// }
 		this.extensions	= (primitiveBase.extensions	!== undefined) ? primitiveBase.extensions	: null;
 		this.extras		= (primitiveBase.extras		!== undefined) ? primitiveBase.extras		: null;
 	}
