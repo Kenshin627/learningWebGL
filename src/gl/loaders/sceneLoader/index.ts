@@ -1,3 +1,5 @@
+import { mat4, vec3 } from "gl-matrix";
+import { getAABBFromOBB } from "../../../utils";
 import 
 { 
     AccessorBase, 
@@ -141,12 +143,26 @@ export class GLTFLoader {
                 const _scene = new Scene(scene, this.glTF);
                 _scene.boundingBox = new BoundingBox();
                 this.glTF.scenes[idx] = _scene;
+                const nodeMatrices: mat4[] = [];
                 _scene.nodes.forEach((node: Node, idx: number) => {
                     node.traverseTwoFunction((node: Node, parent?: Node) =>{
-                        
+                        if (parent) {
+                            nodeMatrices[node.nodeID] = mat4.multiply(nodeMatrices[node.nodeID], parent.modelMatrix, node.modelMatrix)
+                        }else {
+                            nodeMatrices[node.nodeID] = mat4.clone(node.modelMatrix);
+                        }
                     },
                     (node: Node, parent?: Node)=>{
-
+                        if (node.mesh) {
+                            node.worldMatrix = mat4.clone(nodeMatrices[node.nodeID]);
+                            if (node.mesh.boundingBox) {
+                                node.aabb = getAABBFromOBB(node.mesh.boundingBox, node.worldMatrix);
+                                if (node.children.length === 0) {
+                                    node.bvh.min = vec3.clone(node.aabb.min);
+                                    node.bvh.max = vec3.clone(node.bvh.max);
+                                }
+                            }
+                        }
                     })
                 })
 
