@@ -358,7 +358,7 @@ export class Scene {
 		const length = sceneBase.nodes.length;
 		this.nodes = [];
 		for (let i = 0; i < length; i++) {
-			this.nodes.push((gltf.nodes as Node[])[sceneBase.nodes[i]]);
+			this.nodes.push(gltf.nodes[sceneBase.nodes[i]]);
 		}
 		this.name			= sceneBase.name;
 		this.extensions		= sceneBase.extensions;
