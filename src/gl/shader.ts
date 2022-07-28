@@ -101,6 +101,8 @@ export class Shader {
     }
 
     dispose(){
-        this._ctx.deleteProgram(this.program);
+        if (this._program) {
+            this._ctx.deleteProgram(this._program);
+        }
     }
 }

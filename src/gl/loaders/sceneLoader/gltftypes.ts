@@ -1,5 +1,6 @@
 import { mat4, vec3, quat,  } from 'gl-matrix';
 import { GLTFLoader } from '.';
+import { Shader } from '../../shader';
 
 export module glTFLoaderBasic {
     export function accessorTypeToNumComponents(type: string): number {
@@ -562,6 +563,7 @@ export class Mesh {
 	extras?		:  any;
 	boundingBox?:  BoundingBox;
 	meshID		:  number;
+	modelMatrix?: mat4;
 	constructor(meshBase: MeshBase, meshID: number, currentLoader: GLTFLoader) {
 		this.primitives		=  [];
 		this.weights		= meshBase.weights;
@@ -587,9 +589,9 @@ export class Mesh {
 	}
 }
 
-type arrtibute = "POSITION" | "NORMAL" | "TEXCOORD_0" | string;
-type attributeId  = { [ k in arrtibute ]?: GLTFID };
-type arrtibuteType = { [ k in arrtibute ]?: Accessor };
+export type attribute = "POSITION" | "NORMAL" | "TEXCOORD_0" | string;
+type attributeId  = { [ k in attribute ]?: GLTFID };
+export type arrtibuteType = { [ k in attribute ]?: Accessor };
 
 type targets = "POSITION" | "NORMAL" | "TANGENT" | string;
 type targetsId = { [ k in targets ]?: GLTFID };
@@ -606,9 +608,9 @@ export class MeshPrimitive {
 	extensions				:  any;
 	extras					:  any;
 	drawIndices?			:  Accessor;
-	vertexArray?				:  ArrayBuffer;
+	vertexArray?			:  WebGLVertexArrayObject;
 	vertexBuffer?			:  ArrayBuffer;
-	shader?					:  WebGLShader;
+	shader?					:  Shader;
 	boundingBox?			:  BoundingBox;
 	constructor(primitiveBase: MeshPrimitiveBase, gltf: GLTF, currentLoader: GLTFLoader) {
 		this.attributesID =  primitiveBase.attributes;
@@ -662,12 +664,12 @@ export class MeshPrimitive {
 	}
 }
 export class Texture {
-	sampler?		:  Sampler;
+	sampler?	:  Sampler;
 	source?		:  ImageBitmap | ImageData | HTMLImageElement;
 	name?		:  string;
 	extensions	:  any;
 	extras		:  any;
-	texture?		:  WebGLTexture;
+	texture?	:  WebGLTexture;
 	constructor(textureBase: TextureBase, currentLoader: GLTFLoader) {
 		this.sampler	= (textureBase.sampler		!== undefined) ? (currentLoader.glTF.samplers as Sampler[])[textureBase.sampler]	: undefined;
 		this.source		= (textureBase.sampler		!== undefined) ? (currentLoader.glTF.images as (ImageBitmap | ImageData | HTMLImageElement)[])[textureBase.source as number]		: undefined;

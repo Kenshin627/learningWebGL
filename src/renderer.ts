@@ -65,6 +65,7 @@ export class Renderer {
         this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(geometry.vertices), this._gl.STATIC_DRAW);
 
         geometry.attris.forEach(attr =>{
+         
             const itemLocation = this._gl.getAttribLocation(program, attr.key);
             this._gl.enableVertexAttribArray(itemLocation);
             this._gl.vertexAttribPointer(itemLocation, attr.size, this._gl.FLOAT, false, geometry.stride *4 , attr.offset * 4)

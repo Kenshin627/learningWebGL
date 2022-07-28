@@ -1,4 +1,5 @@
 import { mat4, vec3 } from "gl-matrix";
+import { meshes } from "../../../models/mesh/meshData";
 import { getAABBFromOBB } from "../../../utils";
 import 
 { 
@@ -112,13 +113,13 @@ export class GLTFLoader {
 				this.glTF.samplers.push(new Sampler(this._glTFSource.samplers[i]));
 			}
 		}
-		// TODO: Texture
-		if (this._glTFSource.textures && this._glTFSource.textures.length) {
-			for (let i = 0; i < this._glTFSource.textures.length; i++) {
-				this.glTF.textures.push(new Texture(this._glTFSource.textures[i], this));
-				this.glTF.textures[i].createTexture(this.context);
-			}
-		}
+		// // TODO: Texture
+		// if (this._glTFSource.textures && this._glTFSource.textures.length) {
+		// 	for (let i = 0; i < this._glTFSource.textures.length; i++) {
+		// 		this.glTF.textures.push(new Texture(this._glTFSource.textures[i], this));
+		// 		this.glTF.textures[i].createTexture(this.context);
+		// 	}
+		// }
 		// TODO: Mesh
 		if (this._glTFSource.meshes && this._glTFSource.meshes.length) {
 			for (let i = 0; i < this._glTFSource.meshes.length; i++) {
@@ -145,11 +146,13 @@ export class GLTFLoader {
                 const _scene = new Scene(scene, this.glTF);
                 _scene.boundingBox = new BoundingBox();
                 this.glTF.scenes[idx] = _scene;
-                const nodeMatrices: mat4[] = [];
+                const nodeMatrices: Record<number, mat4> = {};
                 _scene.nodes.forEach((node: Node) => {
                     node.traverseTwoFunction((node: Node, parent?: Node) =>{
                         if (parent) {
-                            nodeMatrices[node.nodeID] = mat4.multiply(nodeMatrices[node.nodeID], nodeMatrices[parent.nodeID], node.modelMatrix)
+                            let nodeMatrix = mat4.create();
+                            mat4.multiply(nodeMatrix, nodeMatrices[parent.nodeID], node.modelMatrix)
+                            nodeMatrices[node.nodeID] = nodeMatrix;
                         }else {
                             nodeMatrices[node.nodeID] = mat4.clone(node.modelMatrix);
                         }
@@ -157,6 +160,7 @@ export class GLTFLoader {
                     (node: Node, parent?: Node)=>{
                         if (node.mesh) {
                             node.worldMatrix = mat4.clone(nodeMatrices[node.nodeID]);
+                            node.mesh.modelMatrix = node.worldMatrix;
                             if (node.mesh.boundingBox) {
                                 node.aabb = getAABBFromOBB(node.mesh.boundingBox, node.worldMatrix);
                                 if (node.children.length === 0) {
@@ -251,34 +255,34 @@ export class GLTFLoader {
             resolve(true);
         })
 
-        const loadImage: Promise<boolean> = new Promise<boolean>(async(resolve) => {
-            if (this._glTFSource.images) {
-                const ImagePromise: Promise<ImageBitmap>[] = [];
-                for (const imageInfo of this._glTFSource.images) {
-                    try {
-                        ImagePromise.push(fetch(imageInfo.uri as string).then((response: Response) => {
-                            if (response.ok) {
-                                return response.blob();
-                            }
-                            throw new Error("loading Error: Error ocured in loading images.");
+        // const loadImage: Promise<boolean> = new Promise<boolean>(async(resolve) => {
+        //     if (this._glTFSource.images) {
+        //         const ImagePromise: Promise<ImageBitmap>[] = [];
+        //         for (const imageInfo of this._glTFSource.images) {
+        //             try {
+        //                 ImagePromise.push(fetch(this.glTF.bufferViews[imageInfo.bufferView as number]).then((response: Response) => {
+        //                     if (response.ok) {
+        //                         return response.blob();
+        //                     }
+        //                     throw new Error("loading Error: Error ocured in loading images.");
                             
-                        }).then((blob: Blob) => {
-                            return createImageBitmap(blob);
-                        }))
-                    } catch (error) {
-                        console.error(error);
-                    }
-                }
+        //                 }).then((blob: Blob) => {
+        //                     return createImageBitmap(blob);
+        //                 }))
+        //             } catch (error) {
+        //                 console.error(error);
+        //             }
+        //         }
 
-                for (const [imageID, imagePending] of ImagePromise.entries()) {
-                    this.glTF.images[imageID] = await imagePending;
-                }
-            }
-            resolve(true);
-        });
+        //         for (const [imageID, imagePending] of ImagePromise.entries()) {
+        //             this.glTF.images[imageID] = await imagePending;
+        //         }
+        //     }
+        //     resolve(true);
+        // });
 
         await loadBuffer;
-        await loadImage;
+        // await loadImage;
         this.postProcess();
         return this.glTF;
     }

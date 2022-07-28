@@ -1,11 +1,22 @@
 import './styles/style.css';
 import { Renderer, cameraOptions } from "./renderer";
+import { Renderer as Renderer2 } from './renderer/index';
 import { meshes } from "./models/mesh/meshData";
-import { FileType, SceneLoader } from "./gl/loaders/sceneLoader/index";
+import { GLTFLoader } from "./gl/loaders/sceneLoader/index";
 
-let renderer = new Renderer(document.querySelector("#webglBox")as HTMLCanvasElement);
+const container = document.querySelector("#webglBox")as HTMLCanvasElement;
+let renderer = new Renderer(container);
+let glOpts: WebGLContextAttributes = {
+    alpha: true,
+    antialias: true,
+    depth: true,
+    stencil: true
+};
+const _gl = container.getContext("webgl2", glOpts) as WebGL2RenderingContext;
+
+let loader = new GLTFLoader(_gl);;
+
 let d = document.querySelector(".list-ul");
-let loader = new SceneLoader();
 let cameraData: Record<string, cameraOptions> = {
     "camera": {
         "position": [100, 100, -200],
@@ -31,8 +42,11 @@ let cameraData: Record<string, cameraOptions> = {
 d?.addEventListener("click", e => {
     const key = (e.target as any).id as string; 
     if (key === "gltfLoader") {
-        loader.loadScene(FileType.GLTF, "./src/models/gltf/troll.gltf").then( data => {
-            debugger
+        loader.loadGLTF("./src/models/gltf/troll.gltf").then(gltf => {
+            let renderer2 = new Renderer2(_gl, gltf);
+            renderer2.setupScene().then(() => {
+                renderer2.renderLoop();
+            })
         })
     }else {
         if (meshes[key]) {
