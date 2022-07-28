@@ -83,8 +83,8 @@ export class GLTFLoader {
             for (let i = 0; i < this._glTFSource.bufferViews.length; i++) {
                 const bufferViewSource = this._glTFSource.bufferViews[i];
                 const bufferView = new BufferView(bufferViewSource, (this.glTF.buffers as ArrayBuffer[])[this._glTFSource.bufferViews[i].buffer]);
-                bufferView.createBuffer(this.context);
-                bufferView.bindData(this.context);
+                // bufferView.createBuffer(this.context);
+                // bufferView.bindData(this.context);
                 this.glTF.bufferViews?.push(bufferView);
             }
         }

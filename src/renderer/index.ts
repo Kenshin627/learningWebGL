@@ -26,20 +26,20 @@ export class Renderer {
         this.defaultScene = this.gltf.scene??this.gltf.scenes[0];
         this.defaultShader = new Shader(this.ctx);
         this.light = new Light(vec3.fromValues(1.0, 1.0, 1.0), vec3.fromValues( 1.0, 1.0, 1.0), 1.0);
-        if (this.gltf.cameras && this.gltf.cameras.length) {
-            const { yfov, zfar, znear, aspectRatio } = this.gltf.cameras[0].perspective as CameraPerspectiveBase;
-            this.view = this.gltf.cameras[0].lookAt;
-            this.camera = new Camera(vec3.fromValues(0.0, 0.0, 0), vec3.fromValues(0.0, 0.0, -1.0), vec3.fromValues(0.0, 1.0, 0.0));
-            this.camera.perspective(yfov, this.ctx.canvas.width / this.ctx.canvas.height, znear, zfar as number);
-        }else {
+        // if (this.gltf.cameras && this.gltf.cameras.length) {
+        //     const { yfov, zfar, znear, aspectRatio } = this.gltf.cameras[0].perspective as CameraPerspectiveBase;
+        //     this.view = this.gltf.cameras[0].lookAt;
+        //     this.camera = new Camera(vec3.fromValues(0.0, 0.0, 0), vec3.fromValues(0.0, 0.0, -1.0), vec3.fromValues(0.0, 1.0, 0.0));
+        //     this.camera.perspective(yfov, this.ctx.canvas.width / this.ctx.canvas.height, znear, zfar as number);
+        // }else {
             this.constructorDefaultCamera();
-        }
+        // }
        
     }
 
     constructorDefaultCamera() {
-        this.camera = new Camera(vec3.fromValues(0.0, 0.0, -200.0), vec3.fromValues(0.0, 0.0, -1.0), vec3.fromValues(0., 1.0, 0.0));
-        this.camera.perspective(glMatrix.toRadian(60), this.ctx.canvas.width / this.ctx.canvas.height, 0, 100000)
+        this.camera = new Camera(vec3.fromValues(0.0, 5.0, 4.0), vec3.fromValues(0.0, 2.0, -3.67), vec3.fromValues(0.0, 1.0, 0.0));
+        this.camera.perspective(0.8, this.ctx.canvas.width / this.ctx.canvas.height, 0.0896, 8957.6039)
     }
 
    async setupScene() {
@@ -81,7 +81,6 @@ export class Renderer {
             this.ctx.bindBuffer(this.ctx.ELEMENT_ARRAY_BUFFER, null);
         })
     })
-    this.defaultShader.use();
    }
    
    initBuffer() {
@@ -104,23 +103,27 @@ export class Renderer {
    }
 
    renderLoop() {
+        
         this.ctx.viewport(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
         this.ctx.clearColor(0.0, 0.0, 0.0, 0.0);
         this.ctx.clear(this.ctx.COLOR_BUFFER_BIT | this.ctx.DEPTH_BUFFER_BIT);
-        // this.ctx.enable(this.ctx.DEPTH_TEST);
+        this.ctx.enable(this.ctx.DEPTH_TEST);
         // this.ctx.enable(this.ctx.CULL_FACE);
-
+        this.defaultShader.use();
         this.gltf.meshes.forEach(mesh => {
             mesh.primitives.forEach(primitive => {
                 // this.ctx.useProgram(primitive.shader?.program as WebGLProgram);
                 // primitive.shader?.use();
                 this.ctx.bindVertexArray(primitive.vertexArray as WebGLVertexArrayObject);
-                const modelM = mat4.create();
-                mat4.multiply(modelM, mat4.invert(modelM, this.view as mat4), mesh.modelMatrix as mat4);
-                primitive.shader?.setMatrix4x4("u_model", modelM);
-                // primitive.shader?.setMatrix4x4("u_model", mat4.create());
-                primitive.shader?.setMatrix4x4("u_view", (this.camera as Camera).lookAt);
-                primitive.shader?.setMatrix4x4("u_projection", (this.camera as Camera).projection);
+                const modelInvertTranspose = mat4.create();
+          
+                // mat4.multiply(modelM, mat4.invert(modelM, this.view as mat4), mesh.modelMatrix as mat4);
+                // primitive.shader?.setMatrix4x4("u_model", modelM);
+                mat4.transpose(modelInvertTranspose, mat4.invert(modelInvertTranspose, mesh.modelMatrix as mat4));
+                this.defaultShader.setMatrix4x4("u_timodel", modelInvertTranspose);
+                this.defaultShader.setMatrix4x4("u_model", mesh.modelMatrix as mat4);
+                this.defaultShader.setMatrix4x4("u_view", (this.camera as Camera).lookAt);
+                this.defaultShader.setMatrix4x4("u_projection", (this.camera as Camera).projection);
                 if (primitive.indices) {
                     this.ctx.drawElements(primitive.mode, primitive.indices.count, primitive.indices.componentType, primitive.indices.byteOffset);
                 }else {
