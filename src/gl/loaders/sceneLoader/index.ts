@@ -65,9 +65,9 @@ export class GLTFLoader {
                     if (bufferView.target !== undefined) {
                         if (bufferView.target !== BufferViewTarget.ELEMENT_ARRAY_BUFFER) {
                             console.warn("BufferView " + primitive.indices + " should have a target equal to ELEMENT_ARRAY_BUFFER");
-                        }else {
-                            bufferView.target = BufferViewTarget.ELEMENT_ARRAY_BUFFER;
                         }
+                    }else {
+                        bufferView.target = BufferViewTarget.ELEMENT_ARRAY_BUFFER;
                     }
                 }
             })
@@ -168,6 +168,10 @@ export class GLTFLoader {
                                     node.bvh.max = vec3.clone(node.aabb.max);
                                 }
                             }
+                        }
+                        if (node.camera !== null && node.camera !== undefined) {
+                            node.worldMatrix = mat4.clone(nodeMatrices[node.nodeID]);
+                            this.glTF.cameras[node.camera].lookAt = node.worldMatrix;
                         }
                         if (parent) {
                             parent.bvh.min = vec3.min(parent.bvh.min, parent.bvh.min, node.bvh.min);

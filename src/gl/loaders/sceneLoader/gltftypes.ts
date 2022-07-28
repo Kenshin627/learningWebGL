@@ -480,6 +480,7 @@ export class Camera {
 	name?			:  string;
 	extensions		:  any;
 	extras			:  any;
+	lookAt 			:  mat4;
 	constructor(cameraBase: CameraBase) {
 		this.orthographic	= cameraBase.orthographic;
 		this.perspective	= cameraBase.perspective;
@@ -487,6 +488,7 @@ export class Camera {
 		this.name			= cameraBase.name
 		this.extensions		= cameraBase.extensions;
 		this.extras			= cameraBase.extras;
+		this.lookAt			= mat4.create();
 	}
 }
 export class Node {
@@ -517,7 +519,7 @@ export class Node {
 		this.rotation		= nodeBase.rotation? nodeBase.rotation		: quat.create();
 		this.scale			= nodeBase.scale? nodeBase.scale			: vec3.fromValues(1.0, 1.0, 1.0);
 		this.matrix			= nodeBase.matrix? mat4.clone(nodeBase.matrix) : mat4.fromRotationTranslationScale(mat4.create(), this.rotation, this.translation, this.scale);
-		this.mesh			= nodeBase.mesh? (currentLoader.glTF?.meshes as Mesh[])[nodeBase.mesh] : undefined;
+		this.mesh			= nodeBase.mesh !== null && nodeBase.mesh !== undefined? (currentLoader.glTF?.meshes as Mesh[])[nodeBase.mesh] : undefined;
 		this.weights		= nodeBase.weights;
 		this.name			= nodeBase.name;
 		this.extensions		= nodeBase.extensions;
