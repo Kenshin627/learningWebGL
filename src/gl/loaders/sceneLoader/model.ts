@@ -66,6 +66,7 @@ export class BoundingBox {
 	max			:  vec3;
     center      :  vec3;
 	transform	:  mat4;
+	bboxRender?: boundingBoxRender;
 	constructor(min?: vec3, max?: vec3, isClone?: boolean) {
         this.center = vec3.create();
         if (min && max) {
@@ -264,6 +265,7 @@ export class Mesh {
 	boundingBox?:  BoundingBox;
 	meshID		:  number;
 	modelMatrix?: mat4;
+	wireFrameMode?: boolean = true; 
 	constructor(meshBase: MeshBase, meshID: number, currentLoader: GLTFLoader) {
 		this.primitives		=  [];
 		this.weights		= meshBase.weights;
@@ -287,6 +289,70 @@ export class Mesh {
 		}
 		this.meshID			=  meshID;
 	}
+
+    showBoundingBox() {
+
+    }
+}
+
+export class boundingBoxRender {
+    public vertexData: Float32Array;
+    public vertexArray: WebGLVertexArrayObject;
+    public vertexBuffer: WebGLBuffer;
+    public shader: Shader;
+    public positionLocation: number;
+    public uniformMVPlocation: number;
+    public uniformLineColorLocation: number;
+    public ctx: WebGL2RenderingContext;
+    constructor(ctx: WebGL2RenderingContext) {
+        this.ctx = ctx;
+        this.positionLocation = 0;
+        this.uniformMVPlocation = 0;
+        this.uniformLineColorLocation = 1;
+        this.vertexData = new Float32Array([
+            0.0, 0.0, 0.0,
+            1.0, 0.0, 0.0,
+            0.0, 0.0, 0.0,
+            0.0, 1.0, 0.0,
+            0.0, 0.0, 0.0,
+            0.0, 0.0, 1.0,
+
+            0.0, 1.0, 1.0,
+            1.0, 1.0, 1.0,
+            0.0, 1.0, 1.0,
+            0.0, 1.0, 0.0,
+            0.0, 1.0, 1.0,
+            0.0, 0.0, 1.0,
+
+            1.0, 1.0, 0.0,
+            1.0, 1.0, 1.0,
+            1.0, 1.0, 0.0,
+            0.0, 1.0, 0.0,
+            1.0, 1.0, 0.0,
+            1.0, 0.0, 0.0,
+
+            1.0, 0.0, 1.0,
+            1.0, 0.0, 0.0,
+            1.0, 0.0, 1.0,
+            1.0, 1.0, 1.0,
+            1.0, 0.0, 1.0,
+            0.0, 0.0, 1.0
+        ]);
+
+        this.vertexArray = ctx.createVertexArray() as WebGLVertexArrayObject;
+        this.vertexBuffer = ctx.createBuffer() as WebGLBuffer;
+        this.shader = new Shader(this.ctx);
+    }
+
+    async preDraw() {
+        (await this.shader.readShader("./src/shaders/aabb")).compilerShader();
+        this.ctx.bindVertexArray(this.vertexArray);
+        this.ctx.bindBuffer(this.ctx.ARRAY_BUFFER, this.vertexBuffer);
+        this.ctx.bufferData(this.ctx.ARRAY_BUFFER, this.vertexData, this.ctx.STATIC_DRAW);
+        this.ctx.vertexAttribPointer(this.positionLocation, 3, this.ctx.FLOAT, false, 0, 0);
+        this.ctx.enableVertexAttribArray(this.positionLocation);
+        this.ctx.bindVertexArray(null);
+    }
 }
 
 export type attribute = "POSITION" | "NORMAL" | "TEXCOORD_0" | string;
