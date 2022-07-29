@@ -64,10 +64,17 @@ export interface BoundingBoxBase {
 export class BoundingBox {
 	min			:  vec3;
 	max			:  vec3;
+    center      :  vec3;
 	transform	:  mat4;
 	constructor(min?: vec3, max?: vec3, isClone?: boolean) {
+        this.center = vec3.create();
+        if (min && max) {
+            vec3.add(this.center, min, max);
+            vec3.scale(this.center, this.center, 0.5);
+        }
 		min = min || vec3.fromValues(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
 		max = max || vec3.fromValues(Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
+        
 		if (isClone === undefined || isClone === true) {
 			this.min = vec3.clone(min);
 			this.max = vec3.clone(max);
@@ -80,6 +87,8 @@ export class BoundingBox {
 	updateBoundingBox(boundingBoxBase: BoundingBoxBase): void {
 		vec3.min(this.min, this.min, boundingBoxBase.min);
 		vec3.max(this.max, this.max, boundingBoxBase.max);
+        vec3.add(this.center, this.min, this.max);
+        vec3.scale(this.center, this.center, 0.5);
 	};
 	calculateTransform(): void {
 		// transform from a unit cube whose min = (0, 0, 0) and max = (1, 1, 1)

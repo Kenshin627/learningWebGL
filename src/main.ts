@@ -19,9 +19,9 @@ let loader = new GLTFLoader(_gl);;
 let d = document.querySelector(".list-ul");
 let cameraData: Record<string, cameraOptions> = {
     "camera": {
-        "position": [100, 100, -200],
-        "direction": [0, 0, -1],
-        "up": [0, 1, 0]
+        "position": [0, 100, -300],
+        "direction": [0, 3, 1],
+        "up": [0.5, 1, 0.5]
     },
     "blinnPhong": {
         "position": [100, 100, -200],
@@ -42,7 +42,7 @@ let cameraData: Record<string, cameraOptions> = {
 d?.addEventListener("click", e => {
     const key = (e.target as any).id as string; 
     if (key === "gltfLoader") {
-        loader.loadGLTF("./src/models/gltf/XXX1.gltf").then(gltf => {
+        loader.loadGLTF("./src/models/gltf/xxx2.gltf").then(gltf => {
             let renderer2 = new Renderer2(_gl, gltf);
             renderer2.setupScene().then(() => {
                 renderer2.renderLoop();

@@ -1,4 +1,4 @@
-import {  mat4, vec3 } from "gl-matrix";
+import {  glMatrix, mat4, vec3 } from "gl-matrix";
 import { Camera } from "../gl/camera";
 import { Light } from "../gl/light";
 import { GLTF, Mesh, MeshPrimitive, Scene } from "../gl/loaders/sceneLoader/model"
@@ -38,7 +38,7 @@ export class Renderer {
     }
 
     constructorDefaultCamera() {
-        this.camera = new Camera(vec3.fromValues(0.0, 5.0, 4.0), vec3.fromValues(0.0, 2.0, -3.67), vec3.fromValues(0.0, 1.0, 0.0));
+        this.camera = new Camera(vec3.fromValues(0.0, 5.0, 6.0), vec3.fromValues(0.0, 1.0, -3.67), vec3.fromValues(0.0, 1.0, 0.0));
         this.camera.perspective(0.8, this.ctx.canvas.width / this.ctx.canvas.height, 0.0896, 8957.6039)
     }
 
@@ -104,6 +104,7 @@ export class Renderer {
 
 
    renderLoop() {
+        radian += glMatrix.toRadian(15)/ 60;
         this.ctx.viewport(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
         this.ctx.clearColor(0.0, 0.0, 0.0, 0.0);
         this.ctx.clear(this.ctx.COLOR_BUFFER_BIT | this.ctx.DEPTH_BUFFER_BIT);
@@ -117,9 +118,25 @@ export class Renderer {
                 this.ctx.bindVertexArray(primitive.vertexArray as WebGLVertexArrayObject);
                 const modelInvertTranspose = mat4.create();
                 let modelMatrix = mesh.modelMatrix as mat4;
+                let rotationY = mat4.create();
+                let translation = mat4.create();
+                let inverseTranslation = mat4.create();
+                let boundingBoxCenter = mesh.boundingBox?.center as vec3;
+
+                let res = mat4.create();
+                
+                mat4.fromTranslation(translation, boundingBoxCenter);
+                mat4.invert(inverseTranslation, translation);
+                mat4.fromYRotation(rotationY, radian)
+
+                mat4.multiply(res, res, inverseTranslation);
+                mat4.multiply(res, res, rotationY);
+                mat4.multiply(res, res, translation);
+                mat4.multiply(res, res, modelMatrix);
+                // mat4.multiply(modelMatrix, modelMatrix, rotationY);
                 mat4.transpose(modelInvertTranspose, mat4.invert(modelInvertTranspose, modelMatrix));
                 this.defaultShader.setMatrix4x4("u_timodel", modelInvertTranspose);
-                this.defaultShader.setMatrix4x4("u_model", modelMatrix);
+                this.defaultShader.setMatrix4x4("u_model", res);
                 this.defaultShader.setMatrix4x4("u_view", (this.camera as Camera).lookAt);
                 this.defaultShader.setMatrix4x4("u_projection", (this.camera as Camera).projection);
                 if (primitive.indices) {
@@ -133,3 +150,5 @@ export class Renderer {
         requestAnimationFrame(this.renderLoop.bind(this));
    }
 }
+
+let radian = 0;
