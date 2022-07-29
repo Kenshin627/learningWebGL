@@ -1,10 +1,8 @@
-import { glMatrix, mat4, vec3 } from "gl-matrix";
+import {  mat4, vec3 } from "gl-matrix";
 import { Camera } from "../gl/camera";
 import { Light } from "../gl/light";
-import { GLTF, Mesh, MeshPrimitive, Scene, attribute, Sampler, CameraPerspectiveBase } from "../gl/loaders/sceneLoader/gltftypes";
+import { GLTF, Mesh, MeshPrimitive, Scene } from "../gl/loaders/sceneLoader/model"
 import { Shader } from "../gl/shader";
-
-let radian = 0;
 
 export const ATTRIBUTEMAP = new Map<string, string>([
     ["POSITION","a_position"],
@@ -106,7 +104,6 @@ export class Renderer {
 
 
    renderLoop() {
-        radian += (glMatrix.toRadian(15)) / 60;
         this.ctx.viewport(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
         this.ctx.clearColor(0.0, 0.0, 0.0, 0.0);
         this.ctx.clear(this.ctx.COLOR_BUFFER_BIT | this.ctx.DEPTH_BUFFER_BIT);

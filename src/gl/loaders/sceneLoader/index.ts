@@ -1,30 +1,32 @@
 import { mat4, vec3 } from "gl-matrix";
-import { meshes } from "../../../models/mesh/meshData";
-import { getAABBFromOBB } from "../../../utils";
+import { getAABBFromOBB } from "./utils";
 import 
 { 
     AccessorBase, 
     BufferViewBase, 
     BufferViewTarget, 
-    GLTF, GLTFSource, 
+    GLTFSource, 
     MeshBase, 
     MeshPrimitiveBase, 
+    NodeBase,
+    SceneBase
+} 
+from "./gltftypes";
+import 
+{ 
+    GLTF, 
     BufferView,
     Accessor,
     Material,
     Mesh,
-    Texture,
     Camera,
     Node,
     Sampler, 
-    NodeBase,
-    SceneBase,
     Scene,
     BoundingBox,
     Skin,
     Animation
-} 
-from "./gltftypes";
+} from "./model";
 
 export class GLTFLoader {
     //@ts-ignore
