@@ -265,7 +265,7 @@ export class Mesh {
 	boundingBox?:  BoundingBox;
 	meshID		:  number;
 	modelMatrix?: mat4;
-	wireFrameMode?: boolean = true; 
+	wireFrameMode?: boolean = false; 
 	constructor(meshBase: MeshBase, meshID: number, currentLoader: GLTFLoader) {
 		this.primitives		=  [];
 		this.weights		= meshBase.weights;
