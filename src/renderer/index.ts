@@ -12,7 +12,6 @@ export const ATTRIBUTEMAP = new Map<string, string>([
 ])
 
 export class Renderer {
-    // public canvas: HTMLCanvasElement;
     public ctx: WebGL2RenderingContext;
     public gltf: GLTF;
     public defaultScene: Scene;
@@ -36,19 +35,11 @@ export class Renderer {
         this.depthShader = new Shader(this.ctx);
         this.depth1Pass = new Shader(this.ctx);
         this.light = new Light(vec3.fromValues(1.0, 1.0, 1.0), vec3.fromValues( 1.0, 1.0, 1.0), 1.0);
-        // if (this.gltf.cameras && this.gltf.cameras.length) {
-        //     const { yfov, zfar, znear, aspectRatio } = this.gltf.cameras[0].perspective as CameraPerspectiveBase;
-        //     this.view = this.gltf.cameras[0].lookAt;
-        //     this.camera = new Camera(vec3.fromValues(0.0, 0.0, 0), vec3.fromValues(0.0, 0.0, -1.0), vec3.fromValues(0.0, 1.0, 0.0));
-        //     this.camera.perspective(yfov, this.ctx.canvas.width / this.ctx.canvas.height, znear, zfar as number);
-        // }else {
-            this.constructorDefaultCamera();
-        // }
-       
+        this.constructorDefaultCamera();
     }
 
     constructorDefaultCamera() {
-        this.camera = new Camera(vec3.fromValues(0.0, .0, 2.0), vec3.fromValues(0.0, 1.0, -3.67), vec3.fromValues(0.0, 1.0, 0.0));
+        this.camera = new Camera(vec3.fromValues(0.0, .0, 3.0), vec3.fromValues(0.0, 1.0, -3.67), vec3.fromValues(0.0, 1.0, 0.0));
         this.camera.perspective(0.8, this.ctx.canvas.width / this.ctx.canvas.height, 0.0896, 10.6039)
     }
 
@@ -56,8 +47,9 @@ export class Renderer {
         this.initBuffer();
         this.initTexture();
         this.initSampler();
+        this.ctx.enable(this.ctx.DEPTH_TEST);
+        this.ctx.enable(this.ctx.CULL_FACE);
         // this.preDepthRenderFrameBuffer();
-        let shader = null;
         let bboxRenderingPromise: Promise<void>[] = [];
         (await this.defaultShader.readShader("./src/shaders/normal")).compilerShader();
         (await this.wireFrameShader.readShader("./src/shaders/wireFrame")).compilerShader();
@@ -70,40 +62,16 @@ export class Renderer {
             }
             mesh.primitives.forEach((primitive: MeshPrimitive) => {
                 primitive.vertexArray = this.ctx.createVertexArray() as WebGLVertexArrayObject;
-                // primitive.shader = this.defaultShader;
-                // shader = mesh.renderMode === RenderType.SHADING ? primitive.shader: mesh.renderMode === RenderType.DEPTH? this.depthShader: this.wireFrameShader;
                 this.ctx.bindVertexArray(primitive.vertexArray);
-                Object.entries(primitive.attributes).forEach( ([attribute, accessor],idx) => {
+                Object.entries(primitive.attributes).forEach( ([_, accessor],idx) => {
                     if (!accessor?.bufferView.target) {
                         this.ctx.bindBuffer(this.ctx.ARRAY_BUFFER, accessor?.bufferView.buffer as WebGLBuffer);
                         this.ctx.bufferData(this.ctx.ARRAY_BUFFER, accessor?.bufferView.data as ArrayBuffer, this.ctx.STATIC_DRAW);
-                        
                     }else {
                         this.ctx.bindBuffer(accessor.bufferView.target, accessor.bufferView.buffer as WebGLBuffer);
                     }
-                    // let location = this.ctx.getAttribLocation(shader.program as WebGLProgram, ATTRIBUTEMAP.get(attribute) as string); 
-                    // if (location !== -1) {
-                    //     accessor?.prepareVertexAttribute(this.ctx, location);
-                    // }
-                    // this.ctx.getAttribLocation(primitive.s)
                     accessor?.prepareVertexAttribute(this.ctx, idx);
                 })
-                // for (const [ attribute, accessor ] of Object.entries(primitive.attributes)) {
-                //     if (!accessor?.bufferView.target) {
-                //         this.ctx.bindBuffer(this.ctx.ARRAY_BUFFER, accessor?.bufferView.buffer as WebGLBuffer);
-                //         this.ctx.bufferData(this.ctx.ARRAY_BUFFER, accessor?.bufferView.data as ArrayBuffer, this.ctx.STATIC_DRAW);
-                        
-                //     }else {
-                //         this.ctx.bindBuffer(accessor.bufferView.target, accessor.bufferView.buffer as WebGLBuffer);
-                //     }
-                //     // let location = this.ctx.getAttribLocation(shader.program as WebGLProgram, ATTRIBUTEMAP.get(attribute) as string); 
-                //     // if (location !== -1) {
-                //     //     accessor?.prepareVertexAttribute(this.ctx, location);
-                //     // }
-                //     // this.ctx.getAttribLocation(primitive.s)
-                //     accessor?.prepareVertexAttribute(this.ctx, 0);
-
-                // }
 
                 if (primitive.indices) {
                     let bufferView = primitive.indices.bufferView;
@@ -200,7 +168,6 @@ export class Renderer {
                 case RenderType.DEPTH:
                     shader?.setFloat("near", this.camera?.nearPlane as number);
                     shader?.setFloat("far", this.camera?.farPlane as number);
-                    // shader?.setInt("depthSampler", 0);
                     break;
                 default:
                     break;
@@ -225,8 +192,7 @@ export class Renderer {
 
    renderLoop() {
         radian += glMatrix.toRadian(15)/ 60;
-        this.ctx.enable(this.ctx.DEPTH_TEST);
-        this.ctx.enable(this.ctx.CULL_FACE);
+
         // this.depthRenderPass();
 
         // this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, null);
