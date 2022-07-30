@@ -2,6 +2,12 @@ import { mat4, vec3, quat,  } from 'gl-matrix';
 
 export type GLTFID = number;
 
+export enum RenderType {
+	SHADING,
+	WIREFRAME,
+	DEPTH
+}
+
 export enum AccessorComponentType { 
 	GL_BYTE 						= 5120, 
 	GL_UNSIGNED_BYTE				= 5121,

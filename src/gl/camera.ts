@@ -3,6 +3,8 @@ export class Camera {
     public lookAt: mat4;
     public projection: mat4;
     public position: vec3;
+    public nearPlane?: number;
+    public farPlane?: number;
     constructor(position: vec3, direction: vec3, up: vec3) {
         this.position = position;
         this.lookAt = mat4.create();
@@ -14,6 +16,8 @@ export class Camera {
     }
 
     perspective(fov: number, aspectratio: number, near: number, far: number) {
+        this.nearPlane = near;
+        this.farPlane = far;
         mat4.perspective(this.projection, fov, aspectratio, near, far);
     }
 }

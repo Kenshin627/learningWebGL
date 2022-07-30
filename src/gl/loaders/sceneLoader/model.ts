@@ -30,7 +30,8 @@ import {
     AnimationChannelTargetBase,
     AnimationSamplerBase,
     AssetBase,
-    GLTFSource
+    GLTFSource,
+	RenderType
 
 } from './gltftypes';
 import { glTFLoaderBasic } from './utils';
@@ -265,7 +266,8 @@ export class Mesh {
 	boundingBox?:  BoundingBox;
 	meshID		:  number;
 	modelMatrix?: mat4;
-	wireFrameMode?: boolean = false; 
+	// wireFrameMode?: boolean = false; 
+	renderMode: RenderType = RenderType.DEPTH;
 	constructor(meshBase: MeshBase, meshID: number, currentLoader: GLTFLoader) {
 		this.primitives		=  [];
 		this.weights		= meshBase.weights;
