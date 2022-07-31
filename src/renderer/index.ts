@@ -80,16 +80,27 @@ export class Renderer {
   }
 
   constructorDefaultCamera() {
+    // this.camera.lookAt({
+    //   position: vec3.fromValues(0, 0, 3),
+    //   direction: vec3.fromValues(0, 1, -4),
+    //   up: vec3.fromValues(0, 1, 0),
+    // });
+    // this.camera.perspective(
+    //   0.8,
+    //   this.ctx.canvas.width / this.ctx.canvas.height,
+    //   0.0896,
+    //   10.6039
+    // );
     this.camera.lookAt({
-      position: vec3.fromValues(0, 0, 3),
-      direction: vec3.fromValues(0, 1, -4),
-      up: vec3.fromValues(0, 1, 0),
-    });
+      position: vec3.fromValues(-1, 5, 10),
+      direction: vec3.fromValues(-0, -1, -1),
+      up: vec3.fromValues(0, 0.5, 0)
+    })
     this.camera.perspective(
       0.8,
       this.ctx.canvas.width / this.ctx.canvas.height,
       0.0896,
-      10.6039
+      20.6039
     );
   }
 
@@ -172,8 +183,8 @@ export class Renderer {
       this.ctx.TEXTURE_2D,
       0,
       this.ctx.DEPTH_COMPONENT16,
-      1024,
-      1024,
+      800,
+      800,
       0,
       this.ctx.DEPTH_COMPONENT,
       this.ctx.UNSIGNED_SHORT,
@@ -314,6 +325,7 @@ export class Renderer {
             curShader.setFloat("far", this.camera?.farPlane as number);
             break;
           case RenderType.SHADOW:
+            curShader.setVec3("randomColor", primitive.test)
             curShader.setInt("depthSampler", 0);
           default:
             break;

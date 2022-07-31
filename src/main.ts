@@ -43,7 +43,7 @@ let cameraData: Record<string, cameraOptions> = {
 d?.addEventListener("click", e => {
     const key = (e.target as any).id as string; 
     if (key === "gltfLoader") {
-        loader.loadGLTF("./src/models/gltf/dog.gltf").then(gltf => {
+        loader.loadGLTF("./src/models/gltf/shadowBox.gltf").then(gltf => {
             let renderer2 = new Renderer2(_gl, gltf);
             renderer2.setupScene().then(() => {
                 renderer2.renderLoop();

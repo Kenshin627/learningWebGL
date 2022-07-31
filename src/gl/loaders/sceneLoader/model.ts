@@ -387,7 +387,9 @@ export class MeshPrimitive {
 	vertexBuffer?			:  ArrayBuffer;
 	shader?					:  Shader;
 	boundingBox?			:  BoundingBox;
+	test					:  vec3;
 	constructor(primitiveBase: MeshPrimitiveBase, gltf: GLTF, currentLoader: GLTFLoader) {
+		this.test = vec3.fromValues(Math.random(), Math.random(), Math.random());
 		this.attributesID =  primitiveBase.attributes;
 		if (primitiveBase.extensions !== undefined) {
 			if (primitiveBase.extensions.gl_avatar !== undefined && currentLoader.enableGLAvatar === true) {
