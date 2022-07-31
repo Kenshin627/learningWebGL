@@ -1,16 +1,34 @@
 import { mat4, vec3 } from "gl-matrix";
+
+export interface cameraOptions {
+    position: vec3;
+    direction: vec3;
+    up: vec3;
+}
 export class Camera {
-    public lookAt: mat4;
+    public viewMatrix: mat4;
     public projection: mat4;
     public position: vec3;
     public nearPlane?: number;
     public farPlane?: number;
-    constructor(position: vec3, direction: vec3, up: vec3) {
-        this.position = position;
-        this.lookAt = mat4.create();
+    constructor();
+    constructor(opts?: cameraOptions) {
+        this.viewMatrix = mat4.create();
         this.projection = mat4.create();
-        mat4.lookAt(this.lookAt, position, direction, up)
+        this.position = vec3.create();
+        if (opts) {
+            const { position, direction, up } = opts;
+            this.position = position;
+            mat4.lookAt(this.viewMatrix, position, direction, up)
+        }
     }
+
+    lookAt(opts: cameraOptions) {
+        const { position, direction, up } = opts;
+        this.position = position;
+        mat4.lookAt(this.viewMatrix, position, direction, up);
+    }
+    
     orthor(left: number, right: number, bottom: number, top: number, near: number, far: number) {
         mat4.ortho(this.projection, left,right,bottom,top, near, far);
     }

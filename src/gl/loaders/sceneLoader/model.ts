@@ -39,6 +39,20 @@ import { GLTFLoader } from '.';
 import { Shader } from '../../shader';
 //GLTF
 
+//VBO
+export class VertexBufferObject {
+
+}
+
+//IBO
+export class IndexBufferObject {
+
+}
+
+//VAO
+export class VertexArrayObject {
+
+}
 export class Scene {
 	nodes		:  Node[];
 	name?		:  string | null;
@@ -267,7 +281,7 @@ export class Mesh {
 	meshID		:  number;
 	modelMatrix?: mat4;
 	// wireFrameMode?: boolean = false; 
-	renderMode: RenderType = RenderType.DEPTH;
+	renderMode: RenderType = RenderType.SHADOW;
 	constructor(meshBase: MeshBase, meshID: number, currentLoader: GLTFLoader) {
 		this.primitives		=  [];
 		this.weights		= meshBase.weights;
@@ -301,7 +315,6 @@ export class boundingBoxRender {
     public vertexData: Float32Array;
     public vertexArray: WebGLVertexArrayObject;
     public vertexBuffer: WebGLBuffer;
-    public shader: Shader;
     public positionLocation: number;
     public uniformMVPlocation: number;
     public uniformLineColorLocation: number;
@@ -340,15 +353,9 @@ export class boundingBoxRender {
             1.0, 0.0, 1.0,
             0.0, 0.0, 1.0
         ]);
-
         this.vertexArray = ctx.createVertexArray() as WebGLVertexArrayObject;
         this.vertexBuffer = ctx.createBuffer() as WebGLBuffer;
-        this.shader = new Shader(this.ctx);
-    }
-
-    async preDraw() {
-        (await this.shader.readShader("./src/shaders/aabb")).compilerShader();
-        this.ctx.bindVertexArray(this.vertexArray);
+		this.ctx.bindVertexArray(this.vertexArray);
         this.ctx.bindBuffer(this.ctx.ARRAY_BUFFER, this.vertexBuffer);
         this.ctx.bufferData(this.ctx.ARRAY_BUFFER, this.vertexData, this.ctx.STATIC_DRAW);
         this.ctx.vertexAttribPointer(this.positionLocation, 3, this.ctx.FLOAT, false, 0, 0);

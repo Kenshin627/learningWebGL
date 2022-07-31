@@ -5,7 +5,8 @@ export type GLTFID = number;
 export enum RenderType {
 	SHADING,
 	WIREFRAME,
-	DEPTH
+	DEPTH,
+	SHADOW
 }
 
 export enum AccessorComponentType { 
