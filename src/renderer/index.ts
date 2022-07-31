@@ -56,7 +56,7 @@ export class Renderer {
     this.constructorDefaultCamera();
 
     this.light = new Light(
-      vec3.fromValues(1.0, 1.0, 1.0),
+      vec3.fromValues(1.0, 1.0, -1.0),
       vec3.fromValues(1.0, 1.0, 1.0),
       1.0
     );
@@ -327,6 +327,7 @@ export class Renderer {
           case RenderType.SHADOW:
             curShader.setVec3("randomColor", primitive.test)
             curShader.setInt("depthSampler", 0);
+            curShader.setVec3("lightDir", this.light.direction);
           default:
             break;
         }
@@ -374,7 +375,8 @@ export class Renderer {
             f && f();
         })
     }
-    radian += glMatrix.toRadian(15) / 60;
+    radian += glMatrix.toRadian(30) / 60;
+    this.ctx.cullFace(this.ctx.FRONT);
     this.depthRenderPass();
     this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, null);
     this.ctx.activeTexture(this.ctx.TEXTURE0);
@@ -383,6 +385,7 @@ export class Renderer {
       this.depthTexture as WebGLTexture
     );
     this.initialScene(this.ctx.canvas.width, this.ctx.canvas.height);
+    this.ctx.cullFace(this.ctx.BACK);
     this._defaultRenderPass();
     requestAnimationFrame(this.renderLoop.bind(this));
   }
