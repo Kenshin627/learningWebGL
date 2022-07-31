@@ -1,8 +1,9 @@
 import './styles/style.css';
-import { Renderer, cameraOptions } from "./renderer";
+import { Renderer } from "./renderer";
 import { Renderer as Renderer2 } from './renderer/index';
 import { meshes } from "./models/mesh/meshData";
 import { GLTFLoader } from "./gl/loaders/sceneLoader/index";
+import { cameraOptions } from './gl/camera';
 
 const container = document.querySelector("#webglBox")as HTMLCanvasElement;
 let renderer = new Renderer(container);
@@ -19,9 +20,9 @@ let loader = new GLTFLoader(_gl);;
 let d = document.querySelector(".list-ul");
 let cameraData: Record<string, cameraOptions> = {
     "camera": {
-        "position": [0, 100, -300],
-        "direction": [0, 3, 1],
-        "up": [0.5, 1, 0.5]
+        "position": [100, 100, -200],
+        "direction": [0, 0, -1],
+        "up": [0, 1, 0]
     },
     "blinnPhong": {
         "position": [100, 100, -200],

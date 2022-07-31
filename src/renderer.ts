@@ -1,17 +1,11 @@
 import { Nullable } from './types/index';
 import { Shader } from './gl/shader';
-import { Camera } from './gl/camera';
+import { Camera, cameraOptions } from './gl/camera';
 import { glMatrix, mat4, vec3 } from 'gl-matrix';
 import { Light } from './gl/light';
 import { Geometry } from './gl/geometry';
 import { Mesh } from './gl/mesh';
 import { Material } from './gl/material';
-
-export interface cameraOptions {
-    position: n3<number>,
-    direction: n3<number>,
-    up: n3<number>
-}
 
 export type n3<T> = [T, T, T]
 export class Renderer {
@@ -47,10 +41,14 @@ export class Renderer {
         this.light = new Light(vec3.fromValues(1.0, 1.0, 1.0), vec3.normalize(vec3.create(), vec3.fromValues(-.5, -.7, -1.0)), 1.)
         
         //TODO:CAMERA
-        this.camera = new Camera(vec3.fromValues(0, 0, -200), vec3.fromValues(0, 0, -1), vec3.fromValues(0, 1, 0));
+        let cameraOpts: cameraOptions = {
+            position: vec3.fromValues(0, 0, -200), 
+            direction: vec3.fromValues(0, 0, -1), 
+            up:  vec3.fromValues(0, 1, 0)
+        }
+        this.camera = new Camera(cameraOpts);
         if (camera) {
-            const { position, direction, up } = camera;
-            this.camera = new Camera(vec3.fromValues(...position), vec3.fromValues(...direction), vec3.fromValues(...up));
+            this.camera = new Camera(camera);
         }
         this.camera.perspective(glMatrix.toRadian(60), this._gl.canvas.width / this._gl.canvas.height, 1, 1000);
         //TODO:PROGRAM
@@ -121,7 +119,7 @@ export class Renderer {
 
         this._shader?.setMatrix4x4("u_model", rotationMatrix);
         this._shader?.setMatrix4x4("u_timodel", normalMatrix);
-        this._shader?.setMatrix4x4("u_view", this.camera?.lookAt as mat4);
+        this._shader?.setMatrix4x4("u_view", this.camera?.viewMatrix as mat4);
         this._shader?.setMatrix4x4("u_projection", this.camera?.projection as mat4);
         this._shader?.setVec3("light.dir", this.light?.direction as vec3);
         this._shader?.setVec3("light.color", this.light?.color as vec3);

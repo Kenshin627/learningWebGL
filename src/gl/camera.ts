@@ -11,7 +11,6 @@ export class Camera {
     public position: vec3;
     public nearPlane?: number;
     public farPlane?: number;
-    constructor();
     constructor(opts?: cameraOptions) {
         this.viewMatrix = mat4.create();
         this.projection = mat4.create();
