@@ -1,6 +1,6 @@
 import { glMatrix, mat4, vec3 } from "gl-matrix";
 import { Camera } from "../gl/camera";
-import { DirectionLight } from "../gl/light";
+import { DirectionLight } from "../light/directionLight";
 import { RenderType } from "../gl/loaders/sceneLoader/gltftypes";
 import {
   BoundingBox,
@@ -56,8 +56,8 @@ export class Renderer {
     this.constructorDefaultCamera();
 
     this.light = new DirectionLight(
-      vec3.fromValues(1.0, 1.0, -1.0),
-      vec3.fromValues(0, 0, 0),
+      vec3.fromValues(1.0, 1.0, 1.0),
+      vec3.fromValues(1, 1, -1),
       vec3.fromValues(-2, 4, -1),
       1.0
     );
@@ -184,8 +184,8 @@ export class Renderer {
       this.ctx.TEXTURE_2D,
       0,
       this.ctx.DEPTH_COMPONENT16,
-      1024,
-      1024,
+      800,
+      800,
       0,
       this.ctx.DEPTH_COMPONENT,
       this.ctx.UNSIGNED_SHORT,
@@ -328,7 +328,8 @@ export class Renderer {
           case RenderType.SHADOW:
             curShader.setVec3("randomColor", primitive.test)
             curShader.setInt("depthSampler", 0);
-            curShader.setVec3("lightPosition", this.light.position);
+            curShader.setVec3("lightPos", this.light.position);
+            curShader.setVec3("lightDir", vec3.normalize(vec3.create(), this.light.direction));
           default:
             break;
         }
@@ -371,6 +372,7 @@ export class Renderer {
   }
 
   renderLoop() {
+    // this.ctx.enable(this.ctx.CULL_FACE);
     if (this.renderLoopListener && this.renderLoopListener.length) {
         this.renderLoopListener.forEach( f => {
             f && f();

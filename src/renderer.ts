@@ -2,7 +2,7 @@ import { Nullable } from './types/index';
 import { Shader } from './gl/shader';
 import { Camera, cameraOptions } from './gl/camera';
 import { glMatrix, mat4, vec3 } from 'gl-matrix';
-import { DirectionLight } from './gl/light';
+import { DirectionLight } from './light/directionLight';
 import { Geometry } from './gl/geometry';
 import { Mesh } from './gl/mesh';
 import { Material } from './gl/material';
