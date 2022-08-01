@@ -22,10 +22,10 @@ float shadowCalc(vec4 lightSpacePosition) {
     vec2 texelSize = vec2(1 / ts.x, 1 / ts.y);
     // texelSize = vec2(texelSize.x * 1.0, texelSize.y * 1.0);
     float shadow = 0.0;
-    for(int x = -1; x <= 1; ++x) {
-        for(int y = -1; y <= 1; ++y) {
+    for(int x = -2; x <= 2; ++x) {
+        for(int y = -2; y <= 2; ++y) {
             float pcfDepth = texture(depthSampler, projCoords.xy + vec2(x, y)).r;
-            shadow += currentDepth -bias > pcfDepth? 0.2 : 1.0;
+            shadow += currentDepth -bias > pcfDepth? 1.0 : 0.0;
         }
     }
 
@@ -40,5 +40,6 @@ float shadowCalc(vec4 lightSpacePosition) {
 
 void main() {
     float shadow = shadowCalc(lightSpacePosition);
-    outColor = vec4(randomColor * shadow, 1.0);
+    shadow = min(shadow, 0.5);
+    outColor = vec4(randomColor * (1.0 - shadow), 1.0);
 }
