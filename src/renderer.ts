@@ -2,7 +2,7 @@ import { Nullable } from './types/index';
 import { Shader } from './gl/shader';
 import { Camera, cameraOptions } from './gl/camera';
 import { glMatrix, mat4, vec3 } from 'gl-matrix';
-import { Light } from './gl/light';
+import { DirectionLight } from './gl/light';
 import { Geometry } from './gl/geometry';
 import { Mesh } from './gl/mesh';
 import { Material } from './gl/material';
@@ -13,7 +13,7 @@ export class Renderer {
     private _shader: Nullable<Shader> = null;
     private _currentRAF: Nullable<number> = null;
     public camera: Nullable<Camera> = null;
-    public light: Nullable<Light> = null;
+    public light: Nullable<DirectionLight> = null;
     constructor(el: HTMLCanvasElement) {
         let glOpts: WebGLContextAttributes = {
             alpha: true,
@@ -38,7 +38,7 @@ export class Renderer {
         }
 
         //TODO: LIGHT
-        this.light = new Light(vec3.fromValues(1.0, 1.0, 1.0), vec3.normalize(vec3.create(), vec3.fromValues(-.5, -.7, -1.0)), 1.)
+        this.light = new DirectionLight(vec3.fromValues(1.0, 1.0, 1.0), vec3.normalize(vec3.create(), vec3.fromValues(-.5, -.7, -1.0)), vec3.fromValues(1, 1, 1), 1.)
         
         //TODO:CAMERA
         let cameraOpts: cameraOptions = {

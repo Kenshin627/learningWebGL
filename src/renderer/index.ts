@@ -1,6 +1,6 @@
 import { glMatrix, mat4, vec3 } from "gl-matrix";
 import { Camera } from "../gl/camera";
-import { Light } from "../gl/light";
+import { DirectionLight } from "../gl/light";
 import { RenderType } from "../gl/loaders/sceneLoader/gltftypes";
 import {
   BoundingBox,
@@ -33,7 +33,7 @@ export class Renderer {
   public gltf: GLTF;
   public defaultScene: Scene;
   public shaderStore: Record<shaderType, { shader: Shader; source: string }>;
-  public light: Light;
+  public light: DirectionLight;
   public camera: Camera;
   public showBoundingBox: boolean = false;
   public frameBuffer?: WebGLFramebuffer;
@@ -55,9 +55,10 @@ export class Renderer {
     };
     this.constructorDefaultCamera();
 
-    this.light = new Light(
+    this.light = new DirectionLight(
       vec3.fromValues(1.0, 1.0, -1.0),
-      vec3.fromValues(1.0, 1.0, 1.0),
+      vec3.fromValues(0, 0, 0),
+      vec3.fromValues(-2, 4, -1),
       1.0
     );
     const lightProjection = mat4.ortho(
@@ -71,8 +72,8 @@ export class Renderer {
     );
     const lightView = mat4.lookAt(
       mat4.create(),
-      vec3.fromValues(-2, 4, -1),
-      vec3.fromValues(0, 0, 0),
+      this.light.position,
+      this.light.direction,
       vec3.fromValues(0, 1, 0)
     );
     this.lightSpaceMatrix = mat4.create();
@@ -327,7 +328,7 @@ export class Renderer {
           case RenderType.SHADOW:
             curShader.setVec3("randomColor", primitive.test)
             curShader.setInt("depthSampler", 0);
-            curShader.setVec3("lightDir", this.light.direction);
+            curShader.setVec3("lightPosition", this.light.position);
           default:
             break;
         }
