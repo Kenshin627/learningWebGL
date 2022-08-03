@@ -6,6 +6,7 @@ import { DirectionLight } from './light/directionLight';
 import { Geometry } from './gl/geometry';
 import { Mesh } from './gl/mesh';
 import { Material } from './gl/material';
+import { calculationTBN } from './math';
 
 export type n3<T> = [T, T, T]
 export class Renderer {
@@ -30,7 +31,7 @@ export class Renderer {
     }
 
     async compiler(mesh: Mesh, camera?: cameraOptions) {
-        const { geometry, shader: meshshader, material } = mesh;
+        const { geometry, shader: meshshader, material, calcTBN } = mesh;
         //TODO:DISPSOE
         if (this._currentRAF) {
             cancelAnimationFrame(this._currentRAF);
@@ -38,7 +39,7 @@ export class Renderer {
         }
 
         //TODO: LIGHT
-        this.light = new DirectionLight(vec3.fromValues(1.0, 1.0, 1.0), vec3.normalize(vec3.create(), vec3.fromValues(-.5, -.7, -1.0)), vec3.fromValues(1, 1, 1), 1.)
+        this.light = new DirectionLight(vec3.fromValues(1.0, 1.0, 1.0), vec3.normalize(vec3.create(), vec3.fromValues(0.5, 1, 1)), vec3.fromValues(1, 1, 1), 1.)
         
         //TODO:CAMERA
         let cameraOpts: cameraOptions = {
@@ -51,13 +52,43 @@ export class Renderer {
             this.camera = new Camera(camera);
         }
         this.camera.perspective(glMatrix.toRadian(60), this._gl.canvas.width / this._gl.canvas.height, 1, 1000);
-        //TODO:PROGRAM
+
+        ////TODO:PROGRAM
         const shader = this._shader = new Shader(this._gl);
         await shader.readShader(meshshader);
         shader.compilerShader();
         const program = shader.program as WebGLProgram;
         let vao = this._gl.createVertexArray();
         this._gl.bindVertexArray(vao);
+
+        //TODO: CALCTBN
+        if (calcTBN) {
+            let stride = geometry.stride;
+            let tnVertices = [];
+            for (let i = 0; i < geometry.vertices.length; i += 24) {
+                const p0 = geometry.vertices.slice(i, i + stride);
+                const p1 = geometry.vertices.slice(i + stride, i + 2 * stride);
+                const p2 = geometry.vertices.slice(i + 2 * stride, i + 3 * stride);
+                const {tangent, bitangent } = calculationTBN({ p0, p1, p2 })
+                for (let j = 0; j < 3; j++) {
+                    tnVertices.push(...tangent,...bitangent);
+                }
+            }
+            let tbnBuffer = this._gl.createBuffer();
+            this._gl.bindBuffer(this._gl.ARRAY_BUFFER, tbnBuffer);
+            this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(tnVertices), this._gl.STATIC_DRAW);
+
+            const itemLocation = this._gl.getAttribLocation(program, "a_tangent");
+            this._gl.enableVertexAttribArray(itemLocation);
+            this._gl.vertexAttribPointer(itemLocation, 3, this._gl.FLOAT, false, 6 * 4, 0);
+
+            const bitangentLocation = this._gl.getAttribLocation(program, "a_bitangent");
+            this._gl.enableVertexAttribArray(bitangentLocation);
+            this._gl.vertexAttribPointer(bitangentLocation, 3, this._gl.FLOAT, false, 6 * 4, 4 * 3);
+        }
+
+        
+        
         let buffer = this._gl.createBuffer();
         this._gl.bindBuffer(this._gl.ARRAY_BUFFER, buffer);
         this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(geometry.vertices), this._gl.STATIC_DRAW);
@@ -78,6 +109,9 @@ export class Renderer {
         }
         if (material.emmisiveTexture) {
             this.bindTexture(material.emmisiveTexture, this._gl.TEXTURE2);
+        }
+        if (material.bumpTexture) {
+            this.bindTexture(material.bumpTexture, this._gl.TEXTURE3);
         }
         this._currentRAF = requestAnimationFrame(this.draw.bind(this, geometry, material, 0));
     }
@@ -134,6 +168,7 @@ export class Renderer {
         this._shader?.setInt("material.dsampler", 0);
         this._shader?.setInt("material.ssampler", 1);
         this._shader?.setInt("material.esampler", 2);
+        this._shader?.setInt("material.normalSampler", 3);
         this._gl.drawArrays(this._gl.TRIANGLES, 0, data.vertices.length / data.stride);
 
         this._currentRAF = requestAnimationFrame(this.draw.bind(this, data, material, rotationRadian));

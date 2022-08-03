@@ -38,6 +38,11 @@ let cameraData: Record<string, cameraOptions> = {
         "position": [100, 100, -200],
         "direction": [0, 0, -1],
         "up": [0, 1, 0]
+    },
+    "normalMap": {
+        "position": [0, 0, -150],
+        "direction": [0, 0, -1],
+        "up": [0, 1, 0]
     }
 }
 d?.addEventListener("click", e => {

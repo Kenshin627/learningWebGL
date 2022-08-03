@@ -19,6 +19,11 @@ const e = new Material(vec3.fromValues(0.1, 0.1, 0.1), vec3.fromValues(0.5, 0.5,
 e.emmisiveTexture = "./src/models/texture/matrix.jpg";
 e.specularTexture = "./src/models/texture/lighting_maps_specular_color.png";
 
+const n = new Material(vec3.fromValues(0.8, 0.8, 0.8), vec3.fromValues(0.5, 0.5, 0.5), vec3.fromValues(1.0, 1.0, 1.0), 16);
+n.diffuseTexture = "./src/models/texture/brick.jpg";
+n.bumpTexture = "./src/models/texture/normal_mapping_normal_map.png";
+// n.bumpTexture = "./src/models/texture/normal.jpg";
+
 let cubeGeo = new Geometry([
     -50, -50, -50,  0.0, 0.0, 0.0, 0.0, -1,
     50, -50, -50,  1.0, 0.0, 0.0, 0.0, -1,
@@ -163,5 +168,11 @@ export const meshes: Record<string, Mesh> = {
         geometry: cubeGeo,
         shader: "./src/shaders/emmisive",
         material: e
+    },
+    "normalMap": {
+        geometry: cubeGeo,
+        shader: "./src/shaders/normalMap",
+        material: n,
+        calcTBN: true
     }
 }

@@ -8,6 +8,7 @@ export class Material {
     private _diffuseTexture: Nullable<string> = null;
     private _specularTexture: Nullable<string> = null;
     private _emmisiveTexture: Nullable<string> = null;
+    private _bumpTexture: Nullable<string> = null;
 
     constructor(ambinet: vec3, diffuse: vec3, specular: vec3, shininess: number) {
         this.ambient = ambinet;
@@ -37,4 +38,12 @@ export class Material {
     set emmisiveTexture(texture: Nullable<string>) {
         this._emmisiveTexture = texture;
     }   
+
+    get bumpTexture(): Nullable<string> {
+        return this._bumpTexture;
+    }
+
+    set bumpTexture(texture: Nullable<string>) {
+        this._bumpTexture = texture;
+    }
 }
