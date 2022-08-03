@@ -43,6 +43,11 @@ let cameraData: Record<string, cameraOptions> = {
         "position": [0, 0, -150],
         "direction": [0, 0, -1],
         "up": [0, 1, 0]
+    },
+    "frameBuffer": {
+        "position": [100, 100, -200],
+        "direction": [0, 0, -1],
+        "up": [0, 1, 0]
     }
 }
 d?.addEventListener("click", e => {
@@ -56,7 +61,7 @@ d?.addEventListener("click", e => {
         })
     }else {
         if (meshes[key]) {
-            renderer.compiler(meshes[key], cameraData[key]);
+            renderer.compiler(key, meshes[key], cameraData[key]);
         }
     }
 })

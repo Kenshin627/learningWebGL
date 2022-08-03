@@ -7,12 +7,15 @@ import { Geometry } from './gl/geometry';
 import { Mesh } from './gl/mesh';
 import { Material } from './gl/material';
 import { calculationTBN } from './math';
+import { quadScreen } from './models/mesh/meshData';
 
 export type n3<T> = [T, T, T]
 export class Renderer {
     private _gl: WebGL2RenderingContext;
     private _shader: Nullable<Shader> = null;
+    private _quadScreenShader: Nullable<Shader> = null;
     private _currentRAF: Nullable<number> = null;
+    private framebufferVao: Nullable<WebGLVertexArrayObject> = null;
     public camera: Nullable<Camera> = null;
     public light: Nullable<DirectionLight> = null;
     constructor(el: HTMLCanvasElement) {
@@ -30,14 +33,16 @@ export class Renderer {
         }
     }
 
-    async compiler(mesh: Mesh, camera?: cameraOptions) {
+    async compiler(key: string, mesh: Mesh, camera?: cameraOptions) {
         const { geometry, shader: meshshader, material, calcTBN } = mesh;
+        if (key === 'frameBuffer') {
+            this.frambufferPass();
+        }
         //TODO:DISPSOE
         if (this._currentRAF) {
             cancelAnimationFrame(this._currentRAF);
             this._currentRAF = null;
         }
-
         //TODO: LIGHT
         this.light = new DirectionLight(vec3.fromValues(1.0, 1.0, 1.0), vec3.normalize(vec3.create(), vec3.fromValues(0.5, 1, 1)), vec3.fromValues(1, 1, 1), 1.)
         
@@ -87,8 +92,6 @@ export class Renderer {
             this._gl.vertexAttribPointer(bitangentLocation, 3, this._gl.FLOAT, false, 6 * 4, 4 * 3);
         }
 
-        
-        
         let buffer = this._gl.createBuffer();
         this._gl.bindBuffer(this._gl.ARRAY_BUFFER, buffer);
         this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(geometry.vertices), this._gl.STATIC_DRAW);
@@ -113,7 +116,7 @@ export class Renderer {
         if (material.bumpTexture) {
             this.bindTexture(material.bumpTexture, this._gl.TEXTURE3);
         }
-        this._currentRAF = requestAnimationFrame(this.draw.bind(this, geometry, material, 0));
+        this._currentRAF = requestAnimationFrame(this.draw.bind(this, key, geometry, material, 0));
     }
     
     bindTexture(url: string, idx: number) {
@@ -130,13 +133,22 @@ export class Renderer {
         })
         
     }
-
-    draw(data: Geometry, material: Material, rotationRadian: number) {
-        rotationRadian += (glMatrix.toRadian(15)) / 60;
+    
+    clearScene() {
         this._gl.viewport(0, 0, this._gl.canvas.width, this._gl.canvas.height);
-        this._gl.clearColor(0, 0, 0, 0);
+        this._gl.clearColor( 0, 0, 0, 0);
         this._gl.clear(this._gl.COLOR_BUFFER_BIT | this._gl.DEPTH_BUFFER_BIT);
-        this._gl.enable(this._gl.DEPTH_TEST);
+
+    }
+
+    draw(key: string, data: Geometry, material: Material, rotationRadian: number) {
+
+        rotationRadian += (glMatrix.toRadian(15)) / 60;
+        if (key === "frameBuffer") {
+            
+        }
+        this.clearScene();
+        // this._gl.enable(this._gl.DEPTH_TEST);
         // this._gl.frontFace(this._gl.CCW)
         // this._gl.enable(this._gl.CULL_FACE);
 
@@ -171,6 +183,44 @@ export class Renderer {
         this._shader?.setInt("material.normalSampler", 3);
         this._gl.drawArrays(this._gl.TRIANGLES, 0, data.vertices.length / data.stride);
 
-        this._currentRAF = requestAnimationFrame(this.draw.bind(this, data, material, rotationRadian));
+        this._currentRAF = requestAnimationFrame(this.draw.bind(this, key, data, material, rotationRadian));
+    }
+
+    async frambufferPass() {
+        let frameBuffer = this._gl.createFramebuffer();
+        this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, frameBuffer);
+        let colorTexture = this._gl.createTexture();
+        this._gl.bindTexture(this._gl.TEXTURE_2D, colorTexture);
+        this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGB, this._gl.canvas.width, this._gl.canvas.height, 0, this._gl.RGB, this._gl.UNSIGNED_BYTE, null);
+        this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_MIN_FILTER, this._gl.LINEAR);
+        this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_MAG_FILTER, this._gl.LINEAR);
+
+        this._gl.framebufferTexture2D(this._gl.FRAMEBUFFER, this._gl.COLOR_ATTACHMENT0, this._gl.TEXTURE_2D, colorTexture, 0);
+
+        //RenderBuffer
+        let renderBuffer = this._gl.createRenderbuffer();
+        this._gl.bindRenderbuffer(this._gl.RENDERBUFFER, renderBuffer);
+        this._gl.renderbufferStorage(this._gl.RENDERBUFFER, this._gl.DEPTH24_STENCIL8, this._gl.canvas.width, this._gl.canvas.height);
+        this._gl.framebufferRenderbuffer(this._gl.FRAMEBUFFER, this._gl.DEPTH_STENCIL_ATTACHMENT, this._gl.RENDERBUFFER, renderBuffer);
+
+        //vao
+        let vao = this.framebufferVao = this._gl.createVertexArray();
+        this._gl.bindVertexArray(vao);
+
+        let buffer = this._gl.createBuffer();
+        const _quadScreenShader = this._quadScreenShader = new Shader(this._gl);
+        await _quadScreenShader.readShader('./src/shaders/frameBuffer');
+        _quadScreenShader.compilerShader();
+        const program = _quadScreenShader.program as WebGLProgram;
+        _quadScreenShader.setInt("screenTexture", 0);
+        this._gl.bindBuffer(this._gl.ARRAY_BUFFER, buffer);
+        this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(quadScreen.vertices), this._gl.STATIC_DRAW);
+
+        quadScreen.attris.forEach(attr =>{
+            const itemLocation = this._gl.getAttribLocation(program, attr.key);
+            this._gl.enableVertexAttribArray(itemLocation);
+            this._gl.vertexAttribPointer(itemLocation, attr.size, this._gl.FLOAT, false, quadScreen.stride *4 , attr.offset * 4)
+        })
+        this._gl.bindVertexArray(null);
     }
 }

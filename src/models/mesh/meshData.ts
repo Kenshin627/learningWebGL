@@ -88,7 +88,25 @@ let cubeGeo = new Geometry([
         "func": "uniformMatrix4fv",
         "data": ""
     }
-])
+]);
+
+export const quadScreen = new Geometry([
+    -1.,  1.0,  0.0, 1.0,
+    -1., -1.0,  0.0, 0.0,
+     1., -1.0,  1.0, 0.0,
+    -1.,  1.0,  0.0, 1.0,
+     1., -1.0,  1.0, 0.0,
+     1.,  1.0,  1.0, 1.0
+], [{
+    "key": "a_position",
+    "size": 2,
+    "offset": 0,
+},{
+    "key": "a_texcoord",
+    "size": 2,
+    "offset": 2,
+}
+], 4, [])
 
 export const meshes: Record<string, Mesh> = {
     "triangle": {
@@ -174,5 +192,11 @@ export const meshes: Record<string, Mesh> = {
         shader: "./src/shaders/normalMap",
         material: n,
         calcTBN: true
+    },
+    "frameBuffer": {
+        geometry: cubeGeo,
+        shader: "./src/shaders/material",
+        material: m,
+        calcTBN: false
     }
 }
