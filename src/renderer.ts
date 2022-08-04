@@ -16,6 +16,9 @@ export class Renderer {
     private _quadScreenShader: Nullable<Shader> = null;
     private _currentRAF: Nullable<number> = null;
     private framebufferVao: Nullable<WebGLVertexArrayObject> = null;
+    private _defaultVao: Nullable<WebGLVertexArrayObject> = null;
+    private frameBuffer: Nullable<WebGLFramebuffer> = null;
+    private colorTexture: Nullable<WebGLTexture> = null;
     public camera: Nullable<Camera> = null;
     public light: Nullable<DirectionLight> = null;
     constructor(el: HTMLCanvasElement) {
@@ -36,7 +39,7 @@ export class Renderer {
     async compiler(key: string, mesh: Mesh, camera?: cameraOptions) {
         const { geometry, shader: meshshader, material, calcTBN } = mesh;
         if (key === 'frameBuffer') {
-            this.frambufferPass();
+            await this.preFrambufferPass();
         }
         //TODO:DISPSOE
         if (this._currentRAF) {
@@ -44,7 +47,7 @@ export class Renderer {
             this._currentRAF = null;
         }
         //TODO: LIGHT
-        this.light = new DirectionLight(vec3.fromValues(1.0, 1.0, 1.0), vec3.normalize(vec3.create(), vec3.fromValues(0.5, 1, 1)), vec3.fromValues(1, 1, 1), 1.)
+        this.light = new DirectionLight(vec3.fromValues(1.0, 1.0, 1.0), vec3.normalize(vec3.create(), vec3.fromValues(-1, -1, -1)), vec3.fromValues(1, 1, 1), 1.)
         
         //TODO:CAMERA
         let cameraOpts: cameraOptions = {
@@ -63,7 +66,7 @@ export class Renderer {
         await shader.readShader(meshshader);
         shader.compilerShader();
         const program = shader.program as WebGLProgram;
-        let vao = this._gl.createVertexArray();
+        let vao = this._defaultVao =  this._gl.createVertexArray();
         this._gl.bindVertexArray(vao);
 
         //TODO: CALCTBN
@@ -116,7 +119,10 @@ export class Renderer {
         if (material.bumpTexture) {
             this.bindTexture(material.bumpTexture, this._gl.TEXTURE3);
         }
-        this._currentRAF = requestAnimationFrame(this.draw.bind(this, key, geometry, material, 0));
+
+
+        this.draw(key, geometry, material, 0);
+        // this._currentRAF = requestAnimationFrame(this.draw.bind(this, key, geometry, material, 0));
     }
     
     bindTexture(url: string, idx: number) {
@@ -142,18 +148,28 @@ export class Renderer {
     }
 
     draw(key: string, data: Geometry, material: Material, rotationRadian: number) {
+        // rotationRadian += (glMatrix.toRadian(15)) / 60;
+         if (key === "frameBuffer") {
+            this._gl.enable(this._gl.DEPTH_TEST);
+            this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, this.frameBuffer as WebGLFramebuffer);
+            this.frameBufferPass(key, data, material, rotationRadian);
+            this._gl.disable(this._gl.DEPTH_TEST);
+            this._gl.disable(this._gl.STENCIL_TEST);
+            this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, null);
+            // this._gl.bindTexture(this._gl.TEXTURE_2D, this.colorTexture as WebGLTexture);
+            // this._gl.activeTexture(this._gl.TEXTURE4);
+            // this._gl.bindTexture(this._gl.TEXTURE_2D, this.colorTexture as WebGLTexture);
+            this.frameBufferPass2();
+         }else {
+            this._gl.enable(this._gl.DEPTH_TEST);
+            this.defaultPass(key, data, material, rotationRadian);
+         }
+        this._currentRAF = requestAnimationFrame(this.draw.bind(this, key, data, material, rotationRadian));
+    }
 
-        rotationRadian += (glMatrix.toRadian(15)) / 60;
-        if (key === "frameBuffer") {
-            
-        }
-        this.clearScene();
-        // this._gl.enable(this._gl.DEPTH_TEST);
-        // this._gl.frontFace(this._gl.CCW)
-        // this._gl.enable(this._gl.CULL_FACE);
-
+    defaultPass(key: string, data: Geometry, material: Material, rotationRadian: number) {
         //TODO:SETUNIFORMS
-
+        this._gl.bindVertexArray(this._defaultVao as WebGLVertexArrayObject);
         //Varibles
         let rotationMatrix = mat4.create();
         let normalMatrix = mat4.create();
@@ -182,26 +198,58 @@ export class Renderer {
         this._shader?.setInt("material.esampler", 2);
         this._shader?.setInt("material.normalSampler", 3);
         this._gl.drawArrays(this._gl.TRIANGLES, 0, data.vertices.length / data.stride);
-
-        this._currentRAF = requestAnimationFrame(this.draw.bind(this, key, data, material, rotationRadian));
+        // this._gl.bindVertexArray(null);
     }
 
-    async frambufferPass() {
-        let frameBuffer = this._gl.createFramebuffer();
+    frameBufferPass(key: string, data: Geometry, material: Material, rotationRadian: number) {
+        // this._gl.disable(this._gl.CULL_FACE)
+        // this._gl.bindTexture(this._gl.TEXTURE_2D, null);
+        this.clearScene();
+        this.defaultPass(key, data, material, rotationRadian);
+    }
+
+    frameBufferPass2() {
+        // this._gl.disable(this._gl.CULL_FACE);
+        this._gl.viewport(0, 0, this._gl.canvas.width, this._gl.canvas.height);
+        this._gl.clearColor(1.0, 1.0, 1.0, 1.0);
+        this._gl.clear(this._gl.COLOR_BUFFER_BIT | this._gl.DEPTH_BUFFER_BIT);
+
+        
+        // this._gl.activeTexture(this._gl.TEXTURE0);
+        // this._gl.bindTexture(this._gl.TEXTURE_2D, this.colorTexture as WebGLTexture);
+
+        this._quadScreenShader?.use();
+        this._gl.bindVertexArray(this.framebufferVao as WebGLVertexArrayObject);
+        this._gl.bindTexture(this._gl.TEXTURE_2D, this.colorTexture as WebGLTexture);
+        this._quadScreenShader?.setInt("screenTexture", 4);
+        this._gl.drawArrays(this._gl.TRIANGLES, 0, 6);
+       
+    }
+
+    async preFrambufferPass() {
+        let frameBuffer = this.frameBuffer = this._gl.createFramebuffer();
         this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, frameBuffer);
-        let colorTexture = this._gl.createTexture();
+        this._gl.activeTexture(this._gl.TEXTURE4);
+        let colorTexture = this.colorTexture =  this._gl.createTexture();
         this._gl.bindTexture(this._gl.TEXTURE_2D, colorTexture);
         this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGB, this._gl.canvas.width, this._gl.canvas.height, 0, this._gl.RGB, this._gl.UNSIGNED_BYTE, null);
         this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_MIN_FILTER, this._gl.LINEAR);
         this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_MAG_FILTER, this._gl.LINEAR);
+
+        this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_WRAP_S, this._gl.CLAMP_TO_EDGE);
+        this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_WRAP_T, this._gl.CLAMP_TO_EDGE);
 
         this._gl.framebufferTexture2D(this._gl.FRAMEBUFFER, this._gl.COLOR_ATTACHMENT0, this._gl.TEXTURE_2D, colorTexture, 0);
 
         //RenderBuffer
         let renderBuffer = this._gl.createRenderbuffer();
         this._gl.bindRenderbuffer(this._gl.RENDERBUFFER, renderBuffer);
-        this._gl.renderbufferStorage(this._gl.RENDERBUFFER, this._gl.DEPTH24_STENCIL8, this._gl.canvas.width, this._gl.canvas.height);
-        this._gl.framebufferRenderbuffer(this._gl.FRAMEBUFFER, this._gl.DEPTH_STENCIL_ATTACHMENT, this._gl.RENDERBUFFER, renderBuffer);
+        this._gl.renderbufferStorage(this._gl.RENDERBUFFER, this._gl.DEPTH_COMPONENT16, this._gl.canvas.width, this._gl.canvas.height);
+        this._gl.framebufferRenderbuffer(this._gl.FRAMEBUFFER, this._gl.DEPTH_COMPONENT16, this._gl.RENDERBUFFER, renderBuffer);
+        let status = this._gl.checkFramebufferStatus(this._gl.FRAMEBUFFER);
+
+
+        // this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, null);
 
         //vao
         let vao = this.framebufferVao = this._gl.createVertexArray();
@@ -211,6 +259,7 @@ export class Renderer {
         const _quadScreenShader = this._quadScreenShader = new Shader(this._gl);
         await _quadScreenShader.readShader('./src/shaders/frameBuffer');
         _quadScreenShader.compilerShader();
+        _quadScreenShader.use();
         const program = _quadScreenShader.program as WebGLProgram;
         _quadScreenShader.setInt("screenTexture", 0);
         this._gl.bindBuffer(this._gl.ARRAY_BUFFER, buffer);
@@ -222,5 +271,6 @@ export class Renderer {
             this._gl.vertexAttribPointer(itemLocation, attr.size, this._gl.FLOAT, false, quadScreen.stride *4 , attr.offset * 4)
         })
         this._gl.bindVertexArray(null);
+        this._gl.bindBuffer(this._gl.ARRAY_BUFFER, null);
     }
 }
