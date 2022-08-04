@@ -119,10 +119,7 @@ export class Renderer {
         if (material.bumpTexture) {
             this.bindTexture(material.bumpTexture, this._gl.TEXTURE3);
         }
-
-
         this.draw(key, geometry, material, 0);
-        // this._currentRAF = requestAnimationFrame(this.draw.bind(this, key, geometry, material, 0));
     }
     
     bindTexture(url: string, idx: number) {
