@@ -10,6 +10,8 @@ import { calculationTBN } from './math';
 import { quadScreen } from './models/mesh/meshData';
 
 export type n3<T> = [T, T, T]
+
+const twoPass = ["frameBuffer", "hdr"];
 export class Renderer {
     private _gl: WebGL2RenderingContext;
     private _shader: Nullable<Shader> = null;
@@ -38,7 +40,7 @@ export class Renderer {
 
     async compiler(key: string, mesh: Mesh, camera?: cameraOptions) {
         const { geometry, shader: meshshader, material, calcTBN } = mesh;
-        if (key === 'frameBuffer') {
+        if (twoPass.includes(key)) {
             await this.preFrambufferPass();
         }
         //TODO:DISPSOE
@@ -100,7 +102,6 @@ export class Renderer {
         this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(geometry.vertices), this._gl.STATIC_DRAW);
 
         geometry.attris.forEach(attr =>{
-         
             const itemLocation = this._gl.getAttribLocation(program, attr.key);
             this._gl.enableVertexAttribArray(itemLocation);
             this._gl.vertexAttribPointer(itemLocation, attr.size, this._gl.FLOAT, false, geometry.stride *4 , attr.offset * 4)
@@ -145,13 +146,13 @@ export class Renderer {
     }
 
     draw(key: string, data: Geometry, material: Material, rotationRadian: number) {
-        rotationRadian += (glMatrix.toRadian(15)) / 60;
-         if (key === "frameBuffer") {
+        // rotationRadian += (glMatrix.toRadian(15)) / 60;
+         if (twoPass.includes(key)) {
             //pass1
             this._gl.enable(this._gl.DEPTH_TEST);
             this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, this.frameBuffer as WebGLFramebuffer);
             this._gl.bindVertexArray(this._defaultVao as WebGLVertexArrayObject);
-            this.frameBufferPass(key, data, material, rotationRadian);
+            this.frameBufferPass(data, material, rotationRadian);
 
             //pass2
             this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, null);
@@ -163,21 +164,47 @@ export class Renderer {
             this.frameBufferPass2();
          }else {
             this._gl.enable(this._gl.DEPTH_TEST);
-            this.defaultPass(key, data, material, rotationRadian);
+            this.defaultPass(data, material, rotationRadian);
          }
         this._currentRAF = requestAnimationFrame(this.draw.bind(this, key, data, material, rotationRadian));
     }
 
-    defaultPass(key: string, data: Geometry, material: Material, rotationRadian: number) {
+    defaultPass(data: Geometry, material: Material, rotationRadian: number) {
+        //lights
+        const lightPositions = [
+            // vec3.fromValues( 0.0,  0.0, 49.5),
+            vec3.fromValues(-1.4, -1.9, 9.0),
+            vec3.fromValues(0.0, -1.8, 4.0),
+            vec3.fromValues(0.8, -1.7, 6.0)
+        ]
+
+        const lightColors = [
+            // vec3.fromValues( 200.0,  200.0, 200.0),
+            vec3.fromValues(0.1, 0.0, 0.0),
+            vec3.fromValues(0.0, 0.0, 0.2),
+            vec3.fromValues(0.0, 0.1, 0.0)
+        ]
+
         //TODO:SETUNIFORMS
         //Varibles
         let rotationMatrix = mat4.create();
         let normalMatrix = mat4.create();
         
         mat4.fromYRotation(rotationMatrix, rotationRadian);
+        
+        
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 25.0));
+        model = glm::scale(model, glm::vec3(2.5f, 2.5f, 27.5f));
+        
         mat4.transpose(normalMatrix, mat4.invert(normalMatrix,rotationMatrix));
 
         this._shader?.use();
+
+        for (let i = 0; i < lightPositions.length; i++)
+        {
+            this._shader?.setVec3(`lights[${i}].Position`, lightPositions[i]);
+            this._shader?.setVec3(`lights[${i}].Color`, lightColors[i]);
+        }
 
         this._shader?.setMatrix4x4("u_model", rotationMatrix);
         this._shader?.setMatrix4x4("u_timodel", normalMatrix);
@@ -201,11 +228,11 @@ export class Renderer {
         // this._gl.bindVertexArray(null);
     }
 
-    frameBufferPass(key: string, data: Geometry, material: Material, rotationRadian: number) {
+    frameBufferPass(data: Geometry, material: Material, rotationRadian: number) {
         // this._gl.disable(this._gl.CULL_FACE)
         // this._gl.bindTexture(this._gl.TEXTURE_2D, null);
         this.clearScene();
-        this.defaultPass(key, data, material, rotationRadian);
+        this.defaultPass(data, material, rotationRadian);
     }
 
     frameBufferPass2() {
@@ -232,7 +259,10 @@ export class Renderer {
         this._gl.activeTexture(this._gl.TEXTURE4);
         let colorTexture = this.colorTexture =  this._gl.createTexture();
         this._gl.bindTexture(this._gl.TEXTURE_2D, colorTexture);
-        this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGBA, this._gl.canvas.width, this._gl.canvas.height, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, null);
+        //获取webgl2.0扩展 支持浮点帧缓冲
+        this._gl.getExtension("EXT_color_buffer_float");
+        
+        this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGBA16F, this._gl.canvas.width, this._gl.canvas.height, 0, this._gl.RGBA, this._gl.FLOAT, null);
         this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_MIN_FILTER, this._gl.LINEAR);
         this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_MAG_FILTER, this._gl.LINEAR);
 
@@ -247,9 +277,10 @@ export class Renderer {
         this._gl.renderbufferStorage(this._gl.RENDERBUFFER, this._gl.DEPTH24_STENCIL8, this._gl.canvas.width, this._gl.canvas.height);
         this._gl.framebufferRenderbuffer(this._gl.FRAMEBUFFER, this._gl.DEPTH_STENCIL_ATTACHMENT, this._gl.RENDERBUFFER, renderBuffer);
         let status = this._gl.checkFramebufferStatus(this._gl.FRAMEBUFFER);
-
-
-        // this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, null);
+        if (status !== this._gl.FRAMEBUFFER_COMPLETE) {
+            return;
+        }
+        this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, null);
 
         //vao
         let vao = this.framebufferVao = this._gl.createVertexArray();

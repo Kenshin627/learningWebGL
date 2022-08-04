@@ -48,6 +48,11 @@ let cameraData: Record<string, cameraOptions> = {
         "position": [100, 100, -200],
         "direction": [0, 0, -1],
         "up": [0, 1, 0]
+    },
+    "hdr": {
+        "position": [0, 0, 5],
+        "direction": [0, 0, -1],
+        "up": [0, 1, 0]
     }
 }
 d?.addEventListener("click", e => {

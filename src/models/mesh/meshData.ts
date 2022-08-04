@@ -24,6 +24,9 @@ n.diffuseTexture = "./src/models/texture/brick.jpg";
 n.bumpTexture = "./src/models/texture/normal_mapping_normal_map.png";
 // n.bumpTexture = "./src/models/texture/normal.jpg";
 
+const h = new Material(vec3.fromValues(0.8, 0.8, 0.8), vec3.fromValues(0.5, 0.5, 0.5), vec3.fromValues(1.0, 1.0, 1.0), 16);
+h.diffuseTexture = "./src/models/texture/wood.jpg"
+
 let cubeGeo = new Geometry([
     -50, -50, -50,  0.0, 0.0, 0.0, 0.0, -1,
     50, -50, -50,  1.0, 0.0, 0.0, 0.0, -1,
@@ -89,6 +92,67 @@ let cubeGeo = new Geometry([
         "data": ""
     }
 ]);
+
+let lightBox = new Geometry([
+      // back face
+      -1.0, -1.0, -1.0,  0.0,  0.0, -1.0, 0.0, 0.0, // bottom-left
+      1.0,  1.0, -1.0,  0.0,  0.0, -1.0, 1.0, 1.0, // top-right
+      1.0, -1.0, -1.0,  0.0,  0.0, -1.0, 1.0, 0.0, // bottom-right         
+      1.0,  1.0, -1.0,  0.0,  0.0, -1.0, 1.0, 1.0, // top-right
+     -1.0, -1.0, -1.0,  0.0,  0.0, -1.0, 0.0, 0.0, // bottom-left
+     -1.0,  1.0, -1.0,  0.0,  0.0, -1.0, 0.0, 1.0, // top-left
+
+     -1.0, -1.0,  1.0,  0.0,  0.0,  1.0, 0.0, 0.0, // bottom-left
+      1.0, -1.0,  1.0,  0.0,  0.0,  1.0, 1.0, 0.0, // bottom-right
+      1.0,  1.0,  1.0,  0.0,  0.0,  1.0, 1.0, 1.0, // top-right
+      1.0,  1.0,  1.0,  0.0,  0.0,  1.0, 1.0, 1.0, // top-right
+     -1.0,  1.0,  1.0,  0.0,  0.0,  1.0, 0.0, 1.0, // top-left
+     -1.0, -1.0,  1.0,  0.0,  0.0,  1.0, 0.0, 0.0, // bottom-left
+
+     -1.0,  1.0,  1.0, -1.0,  0.0,  0.0, 1.0, 0.0, // top-right
+     -1.0,  1.0, -1.0, -1.0,  0.0,  0.0, 1.0, 1.0, // top-left
+     -1.0, -1.0, -1.0, -1.0,  0.0,  0.0, 0.0, 1.0, // bottom-left
+     -1.0, -1.0, -1.0, -1.0,  0.0,  0.0, 0.0, 1.0, // bottom-left
+     -1.0, -1.0,  1.0, -1.0,  0.0,  0.0, 0.0, 0.0, // bottom-right
+     -1.0,  1.0,  1.0, -1.0,  0.0,  0.0, 1.0, 0.0, // top-right
+
+      1.0,  1.0,  1.0,  1.0,  0.0,  0.0, 1.0, 0.0, // top-left
+      1.0, -1.0, -1.0,  1.0,  0.0,  0.0, 0.0, 1.0, // bottom-right
+      1.0,  1.0, -1.0,  1.0,  0.0,  0.0, 1.0, 1.0, // top-right         
+      1.0, -1.0, -1.0,  1.0,  0.0,  0.0, 0.0, 1.0, // bottom-right
+      1.0,  1.0,  1.0,  1.0,  0.0,  0.0, 1.0, 0.0, // top-left
+      1.0, -1.0,  1.0,  1.0,  0.0,  0.0, 0.0, 0.0, // bottom-left     
+ 
+     -1.0, -1.0, -1.0,  0.0, -1.0,  0.0, 0.0, 1.0, // top-right
+      1.0, -1.0, -1.0,  0.0, -1.0,  0.0, 1.0, 1.0, // top-left
+      1.0, -1.0,  1.0,  0.0, -1.0,  0.0, 1.0, 0.0, // bottom-left
+      1.0, -1.0,  1.0,  0.0, -1.0,  0.0, 1.0, 0.0, // bottom-left
+     -1.0, -1.0,  1.0,  0.0, -1.0,  0.0, 0.0, 0.0, // bottom-right
+     -1.0, -1.0, -1.0,  0.0, -1.0,  0.0, 0.0, 1.0, // top-right
+
+     -1.0,  1.0, -1.0,  0.0,  1.0,  0.0, 0.0, 1.0, // top-left
+      1.0,  1.0 , 1.0,  0.0,  1.0,  0.0, 1.0, 0.0, // bottom-right
+      1.0,  1.0, -1.0,  0.0,  1.0,  0.0, 1.0, 1.0, // top-right     
+      1.0,  1.0,  1.0,  0.0,  1.0,  0.0, 1.0, 0.0, // bottom-right
+     -1.0,  1.0, -1.0,  0.0,  1.0,  0.0, 0.0, 1.0, // top-left
+     -1.0,  1.0,  1.0,  0.0,  1.0,  0.0, 0.0, 0.0  // bottom-left        
+], [
+    {
+        "key": "a_position",
+        "size": 3,
+        "offset": 0
+    },
+    {
+        "key": "a_normal",
+        "size": 3,
+        "offset": 3
+    },
+    {
+        "key": "a_texcoord",
+        "size": 2,
+        "offset": 6
+    }
+], 8 ,[])
 
 export const quadScreen = new Geometry([
     -1.,  1.0,  0.0, 1.0,
@@ -197,6 +261,12 @@ export const meshes: Record<string, Mesh> = {
         geometry: cubeGeo,
         shader: "./src/shaders/material",
         material: m,
+        calcTBN: false
+    },
+    "hdr": {
+        geometry: lightBox,
+        shader: "./src/shaders/hdr",
+        material: h,
         calcTBN: false
     }
 }
