@@ -148,7 +148,7 @@ export class Renderer {
     }
 
     draw(key: string, data: Geometry, material: Material, rotationRadian: number) {
-        // rotationRadian += (glMatrix.toRadian(15)) / 60;
+        rotationRadian += (glMatrix.toRadian(15)) / 60;
          if (key === "frameBuffer") {
             //pass1
             this._gl.enable(this._gl.DEPTH_TEST);
@@ -247,8 +247,8 @@ export class Renderer {
         //RenderBuffer
         let renderBuffer = this._gl.createRenderbuffer();
         this._gl.bindRenderbuffer(this._gl.RENDERBUFFER, renderBuffer);
-        this._gl.renderbufferStorage(this._gl.RENDERBUFFER, this._gl.DEPTH_COMPONENT16, this._gl.canvas.width, this._gl.canvas.height);
-        this._gl.framebufferRenderbuffer(this._gl.FRAMEBUFFER, this._gl.DEPTH_COMPONENT16, this._gl.RENDERBUFFER, renderBuffer);
+        this._gl.renderbufferStorage(this._gl.RENDERBUFFER, this._gl.DEPTH24_STENCIL8, this._gl.canvas.width, this._gl.canvas.height);
+        this._gl.framebufferRenderbuffer(this._gl.FRAMEBUFFER, this._gl.DEPTH_STENCIL_ATTACHMENT, this._gl.RENDERBUFFER, renderBuffer);
         let status = this._gl.checkFramebufferStatus(this._gl.FRAMEBUFFER);
 
 
