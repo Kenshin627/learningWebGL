@@ -150,15 +150,19 @@ export class Renderer {
     draw(key: string, data: Geometry, material: Material, rotationRadian: number) {
         // rotationRadian += (glMatrix.toRadian(15)) / 60;
          if (key === "frameBuffer") {
+            //pass1
             this._gl.enable(this._gl.DEPTH_TEST);
             this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, this.frameBuffer as WebGLFramebuffer);
+            this._gl.bindVertexArray(this._defaultVao as WebGLVertexArrayObject);
             this.frameBufferPass(key, data, material, rotationRadian);
+
+            //pass2
+            this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, null);
             this._gl.disable(this._gl.DEPTH_TEST);
             this._gl.disable(this._gl.STENCIL_TEST);
-            this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, null);
-            // this._gl.bindTexture(this._gl.TEXTURE_2D, this.colorTexture as WebGLTexture);
-            // this._gl.activeTexture(this._gl.TEXTURE4);
-            // this._gl.bindTexture(this._gl.TEXTURE_2D, this.colorTexture as WebGLTexture);
+            this._gl.bindVertexArray(this.framebufferVao as WebGLVertexArrayObject);
+            this._gl.activeTexture(this._gl.TEXTURE4);
+            this._gl.bindTexture(this._gl.TEXTURE_2D, this.colorTexture as WebGLTexture);
             this.frameBufferPass2();
          }else {
             this._gl.enable(this._gl.DEPTH_TEST);
@@ -169,7 +173,6 @@ export class Renderer {
 
     defaultPass(key: string, data: Geometry, material: Material, rotationRadian: number) {
         //TODO:SETUNIFORMS
-        this._gl.bindVertexArray(this._defaultVao as WebGLVertexArrayObject);
         //Varibles
         let rotationMatrix = mat4.create();
         let normalMatrix = mat4.create();
@@ -211,7 +214,7 @@ export class Renderer {
     frameBufferPass2() {
         // this._gl.disable(this._gl.CULL_FACE);
         this._gl.viewport(0, 0, this._gl.canvas.width, this._gl.canvas.height);
-        this._gl.clearColor(1.0, 1.0, 1.0, 1.0);
+        this._gl.clearColor(.0, .0, .0, .0);
         this._gl.clear(this._gl.COLOR_BUFFER_BIT | this._gl.DEPTH_BUFFER_BIT);
 
         
@@ -219,8 +222,8 @@ export class Renderer {
         // this._gl.bindTexture(this._gl.TEXTURE_2D, this.colorTexture as WebGLTexture);
 
         this._quadScreenShader?.use();
-        this._gl.bindVertexArray(this.framebufferVao as WebGLVertexArrayObject);
-        this._gl.bindTexture(this._gl.TEXTURE_2D, this.colorTexture as WebGLTexture);
+        
+        
         this._quadScreenShader?.setInt("screenTexture", 4);
         this._gl.drawArrays(this._gl.TRIANGLES, 0, 6);
        
@@ -232,7 +235,7 @@ export class Renderer {
         this._gl.activeTexture(this._gl.TEXTURE4);
         let colorTexture = this.colorTexture =  this._gl.createTexture();
         this._gl.bindTexture(this._gl.TEXTURE_2D, colorTexture);
-        this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGB, this._gl.canvas.width, this._gl.canvas.height, 0, this._gl.RGB, this._gl.UNSIGNED_BYTE, null);
+        this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGBA, this._gl.canvas.width, this._gl.canvas.height, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, null);
         this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_MIN_FILTER, this._gl.LINEAR);
         this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_MAG_FILTER, this._gl.LINEAR);
 

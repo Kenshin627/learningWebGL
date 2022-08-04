@@ -194,30 +194,9 @@ export const meshes: Record<string, Mesh> = {
         calcTBN: true
     },
     "frameBuffer": {
-        geometry: new Geometry([
-                
-            0, 70, 0.0, 0.0, 1.0, 0.0,
-            100, -100, 0.0, 0.0, 0.0, 1.0,
-            -100, -100, 0.0, 1.0, 0.0, 0.0
-        ], [
-            {
-                "key": "a_position",
-                "size": 3,
-                "offset": 0
-            },
-            {
-                "key": "a_color",
-                "size": 3,
-                "offset": 3
-            }
-        ], 6, [
-            {
-                "key": "matrixLocation",
-                "func": "uniformMatrix4fv",
-                "data": ""
-            }
-        ]),
-        shader: "./src/shaders/triangle",
-        material: defaultMaterial
-    },
+        geometry: cubeGeo,
+        shader: "./src/shaders/material",
+        material: m,
+        calcTBN: false
+    }
 }
