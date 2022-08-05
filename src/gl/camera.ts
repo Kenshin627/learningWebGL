@@ -4,6 +4,12 @@ export interface cameraOptions {
     position: vec3;
     direction: vec3;
     up: vec3;
+    perspective: {
+        fov: number;
+        aspectRatio: number;
+        near: number;
+        far: number;
+    }
 }
 export class Camera {
     public viewMatrix: mat4;

@@ -58,14 +58,20 @@ export class Renderer {
         let cameraOpts: cameraOptions = {
             position: vec3.fromValues(0, 0, -200), 
             direction: vec3.fromValues(0, 0, -1), 
-            up:  vec3.fromValues(0, 1, 0)
+            up:  vec3.fromValues(0, 1, 0),
+            perspective: {
+                fov: glMatrix.toRadian(60),
+                aspectRatio: this._gl.canvas.width / this._gl.canvas.height,
+                near: 1,
+                far: 1000
+            }
         }
         this.camera = new Camera(cameraOpts);
         if (camera) {
             this.camera = new Camera(camera);
         }
-        //60 1 1000
-        this.camera.perspective(glMatrix.toRadian(60), this._gl.canvas.width / this._gl.canvas.height, 1, 1000);
+        const { fov, aspectRatio, near, far } = camera?.perspective as { fov: number, aspectRatio: number, near: number, far: number };
+        this.camera.perspective(fov, aspectRatio, near, far);
 
         ////TODO:PROGRAM
         const shader = this._shader = new Shader(this._gl);

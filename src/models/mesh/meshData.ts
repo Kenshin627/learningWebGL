@@ -269,5 +269,11 @@ export const meshes: Record<string, Mesh> = {
         material: h,
         calcTBN: false,
         modelMatrix: mat4.fromScaling(mat4.fromTranslation(mat4.create(), vec3.fromValues(0.0, 0.0, 25.0)), vec3.fromValues(2.5, 2.5, 27.5))
+    },
+    "bloom": {
+        geometry: lightBox,
+        shader:"",
+        material:h,
+        modelMatrix: mat4.create()
     }
 }
