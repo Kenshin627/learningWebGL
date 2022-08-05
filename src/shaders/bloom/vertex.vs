@@ -8,7 +8,7 @@ out vec3 normal;
 out vec2 texcoord;
 
 uniform mat4 u_model;
-uniform mat4 u_timodel;
+uniform mat4 U_normalMatrix;
 uniform mat4 u_view;
 uniform mat4 u_projection;
 
@@ -16,5 +16,5 @@ void main(){
     gl_Position = u_projection * u_view * u_model * a_position;
     texcoord = a_texcoord;
     position = (u_model * a_position).xyz;
-    normal = normalize(mat3(u_timodel) * a_normal);
+    normal = normalize(mat3(U_normalMatrix) * a_normal);
 }

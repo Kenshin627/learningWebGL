@@ -78,7 +78,7 @@ let cameraData: Record<string, cameraOptions> = {
         }
     },
     "bloom": {
-        "position": [0, 0, 5],
+        "position": [0, 0, 5.0],
         "direction": [0, 0, -1],
         "up": [0, 1, 0],
         perspective: {
@@ -89,7 +89,7 @@ let cameraData: Record<string, cameraOptions> = {
         }
     }
 }
-d?.addEventListener("click", e => {
+d?.addEventListener("click", async (e) => {
     const key = (e.target as any).id as string; 
     if (key === "gltfLoader") {
         loader.loadGLTF("./src/models/gltf/shadowBox2.gltf").then(gltf => {
@@ -101,6 +101,8 @@ d?.addEventListener("click", e => {
     }
     else if(key === "bloom") {
         let bloom1 = new bloom(meshes[key], cameraData[key], _gl);
+        await bloom1.setupScene();
+        bloom1.renderLoop();
     }
     else {
         if (meshes[key]) {
