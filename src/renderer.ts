@@ -39,7 +39,10 @@ export class Renderer {
     }
 
     async compiler(key: string, mesh: Mesh, camera?: cameraOptions) {
-        const { geometry, shader: meshshader, material, calcTBN } = mesh;
+        let { geometry, shader: meshshader, material, calcTBN, modelMatrix } = mesh;
+        if (!modelMatrix) {
+            modelMatrix = mat4.create();
+        }
         if (twoPass.includes(key)) {
             await this.preFrambufferPass();
         }
@@ -61,6 +64,7 @@ export class Renderer {
         if (camera) {
             this.camera = new Camera(camera);
         }
+        //60 1 1000
         this.camera.perspective(glMatrix.toRadian(60), this._gl.canvas.width / this._gl.canvas.height, 1, 1000);
 
         ////TODO:PROGRAM
@@ -120,10 +124,11 @@ export class Renderer {
         if (material.bumpTexture) {
             this.bindTexture(material.bumpTexture, this._gl.TEXTURE3);
         }
-        this.draw(key, geometry, material, 0);
+        this.draw(key, geometry, material, 0, modelMatrix as mat4);
     }
     
     bindTexture(url: string, idx: number) {
+        // const ext = this._gl.getExtension("EXT_sRGB");
         const texture = this._gl.createTexture();
         let img = new Image();
         img.src = url;
@@ -145,14 +150,14 @@ export class Renderer {
 
     }
 
-    draw(key: string, data: Geometry, material: Material, rotationRadian: number) {
-        // rotationRadian += (glMatrix.toRadian(15)) / 60;
+    draw(key: string, data: Geometry, material: Material, rotationRadian: number, modelMatrix: mat4) {
+        rotationRadian += (glMatrix.toRadian(15)) / 60;
          if (twoPass.includes(key)) {
             //pass1
             this._gl.enable(this._gl.DEPTH_TEST);
             this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, this.frameBuffer as WebGLFramebuffer);
             this._gl.bindVertexArray(this._defaultVao as WebGLVertexArrayObject);
-            this.frameBufferPass(data, material, rotationRadian);
+            this.frameBufferPass(data, material, rotationRadian, modelMatrix);
 
             //pass2
             this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, null);
@@ -164,22 +169,22 @@ export class Renderer {
             this.frameBufferPass2();
          }else {
             this._gl.enable(this._gl.DEPTH_TEST);
-            this.defaultPass(data, material, rotationRadian);
+            this.defaultPass(data, material, rotationRadian, modelMatrix);
          }
-        this._currentRAF = requestAnimationFrame(this.draw.bind(this, key, data, material, rotationRadian));
+        this._currentRAF = requestAnimationFrame(this.draw.bind(this, key, data, material, rotationRadian, modelMatrix));
     }
 
-    defaultPass(data: Geometry, material: Material, rotationRadian: number) {
+    defaultPass(data: Geometry, material: Material, rotationRadian: number, modelMatrix: mat4) {
         //lights
         const lightPositions = [
-            // vec3.fromValues( 0.0,  0.0, 49.5),
+            vec3.fromValues( 0.0,  0.0, 49.5),
             vec3.fromValues(-1.4, -1.9, 9.0),
             vec3.fromValues(0.0, -1.8, 4.0),
             vec3.fromValues(0.8, -1.7, 6.0)
         ]
 
         const lightColors = [
-            // vec3.fromValues( 200.0,  200.0, 200.0),
+            vec3.fromValues( 200.0,  200.0, 200.0),
             vec3.fromValues(0.1, 0.0, 0.0),
             vec3.fromValues(0.0, 0.0, 0.2),
             vec3.fromValues(0.0, 0.1, 0.0)
@@ -187,16 +192,10 @@ export class Renderer {
 
         //TODO:SETUNIFORMS
         //Varibles
-        let rotationMatrix = mat4.create();
         let normalMatrix = mat4.create();
         
-        mat4.fromYRotation(rotationMatrix, rotationRadian);
-        
-        
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 25.0));
-        model = glm::scale(model, glm::vec3(2.5f, 2.5f, 27.5f));
-        
-        mat4.transpose(normalMatrix, mat4.invert(normalMatrix,rotationMatrix));
+        // mat4.fromYRotation(modelMatrix, rotationRadian);
+        mat4.transpose(normalMatrix, mat4.invert(normalMatrix,modelMatrix));
 
         this._shader?.use();
 
@@ -206,7 +205,7 @@ export class Renderer {
             this._shader?.setVec3(`lights[${i}].Color`, lightColors[i]);
         }
 
-        this._shader?.setMatrix4x4("u_model", rotationMatrix);
+        this._shader?.setMatrix4x4("u_model", modelMatrix);
         this._shader?.setMatrix4x4("u_timodel", normalMatrix);
         this._shader?.setMatrix4x4("u_view", this.camera?.viewMatrix as mat4);
         this._shader?.setMatrix4x4("u_projection", this.camera?.projection as mat4);
@@ -228,11 +227,11 @@ export class Renderer {
         // this._gl.bindVertexArray(null);
     }
 
-    frameBufferPass(data: Geometry, material: Material, rotationRadian: number) {
+    frameBufferPass(data: Geometry, material: Material, rotationRadian: number, modelMatrix: mat4) {
         // this._gl.disable(this._gl.CULL_FACE)
         // this._gl.bindTexture(this._gl.TEXTURE_2D, null);
         this.clearScene();
-        this.defaultPass(data, material, rotationRadian);
+        this.defaultPass(data, material, rotationRadian, modelMatrix);
     }
 
     frameBufferPass2() {
@@ -261,6 +260,8 @@ export class Renderer {
         this._gl.bindTexture(this._gl.TEXTURE_2D, colorTexture);
         //获取webgl2.0扩展 支持浮点帧缓冲
         this._gl.getExtension("EXT_color_buffer_float");
+
+       
         
         this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGBA16F, this._gl.canvas.width, this._gl.canvas.height, 0, this._gl.RGBA, this._gl.FLOAT, null);
         this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_MIN_FILTER, this._gl.LINEAR);

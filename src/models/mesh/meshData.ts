@@ -1,7 +1,7 @@
 import { Mesh } from "../../gl/mesh";
 import { Material } from "../../gl/material";
 import { Geometry } from "../../gl/geometry";
-import { vec3 } from "gl-matrix";
+import { mat4, vec3 } from "gl-matrix";
 
 const defaultMaterial = new Material(vec3.fromValues(0.1, 0.1, 0.1), vec3.fromValues(0.5, 0.5, 0.5), vec3.fromValues(1.0, 1.0, 1.0), 32);
 
@@ -25,7 +25,7 @@ n.bumpTexture = "./src/models/texture/normal_mapping_normal_map.png";
 // n.bumpTexture = "./src/models/texture/normal.jpg";
 
 const h = new Material(vec3.fromValues(0.8, 0.8, 0.8), vec3.fromValues(0.5, 0.5, 0.5), vec3.fromValues(1.0, 1.0, 1.0), 16);
-h.diffuseTexture = "./src/models/texture/wood.jpg"
+h.diffuseTexture = "./src/models/texture/wood.png";
 
 let cubeGeo = new Geometry([
     -50, -50, -50,  0.0, 0.0, 0.0, 0.0, -1,
@@ -267,6 +267,7 @@ export const meshes: Record<string, Mesh> = {
         geometry: lightBox,
         shader: "./src/shaders/hdr",
         material: h,
-        calcTBN: false
+        calcTBN: false,
+        modelMatrix: mat4.fromScaling(mat4.fromTranslation(mat4.create(), vec3.fromValues(0.0, 0.0, 25.0)), vec3.fromValues(2.5, 2.5, 27.5))
     }
 }

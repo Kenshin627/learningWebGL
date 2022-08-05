@@ -1,5 +1,6 @@
 #version 300 es
 precision highp float;
+
 out vec4 FragColor;
 
 
@@ -12,19 +13,31 @@ struct Light {
     vec3 Color;
 };
 
+struct Material {
+    vec3 diffuse;
+    vec3 ambient;
+    vec3 specular;
+    float shininess;
+    sampler2D dsampler;
+    sampler2D ssampler;
+    sampler2D esampler;
+};
+
+uniform Material material;
+
 uniform Light lights[16];
-uniform sampler2D diffuseTexture;
+// uniform sampler2D diffuseTexture;
 uniform vec3 viewPos;
 
 void main()
 {           
-    vec3 color = texture(diffuseTexture, TexCoords).rgb;
+    vec3 color = texture(material.dsampler, TexCoords).rgb;
     vec3 normal = normalize(Normal);
     // ambient
     vec3 ambient = 0.0 * color;
     // lighting
     vec3 lighting = vec3(0.0);
-    for(int i = 0; i < 4; i++)
+    for(int i = 0; i < 16; i++)
     {
         // diffuse
         vec3 lightDir = normalize(lights[i].Position - FragPos);
@@ -33,9 +46,9 @@ void main()
         vec3 result = diffuse;        
         // attenuation (use quadratic as we have gamma correction)
         float distance = length(FragPos - lights[i].Position);
-        result *= 1.0 / (distance * distance);
+        result *= 1.0 / (distance);
         lighting += result;
                 
     }
-    FragColor = vec4(lighting, 1.0);
+    FragColor = vec4(lighting+ ambient, 1.0);
 }
