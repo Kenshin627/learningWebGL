@@ -1,12 +1,14 @@
 #version 300 es
 precision highp float;
 uniform sampler2D screenTexture;
+uniform sampler2D hdrTexture;
 in vec2 v_texcoord;
 out vec4 finalColor;
 
 vec3 kernel(float[9] ks);
 void main(){
     vec3 c = texture(screenTexture, v_texcoord).rgb;
+    vec3 h = texture(hdrTexture, v_texcoord).rgb;
     // float averge = (0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b) / 3.0;
     //灰度
     // finalColor = vec4(vec3(averge), 1.0); 
@@ -20,7 +22,10 @@ void main(){
     //HDR
     vec3 result = vec3(1.0) - exp(-c * .2);
     result = pow(result, vec3(1.0 / 2.2));
-    finalColor = vec4(result, 1.0);
+
+    vec3 r1 = vec3(1.0) - exp(-h * .2);
+    r1 = pow(r1, vec3( 1.0 / 2.0));
+    finalColor = vec4(r1, 1.0);
     
     //kernel sharpen
     // float sharpen[9] = float[](

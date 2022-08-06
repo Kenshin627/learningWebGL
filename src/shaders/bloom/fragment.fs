@@ -9,7 +9,8 @@ struct Light {
 };
 uniform sampler2D diffuseTexture;
 uniform Light lights[4];
-out vec4 fragColor;
+layout (location = 0) out vec4 fragColor;
+layout (location = 1) out vec4 hdrColor;
 
 void main(){
     vec3 f_color = texture(diffuseTexture, texcoord).rgb;
@@ -24,5 +25,12 @@ void main(){
         result *= 1.0 /  (distance * distance);
         lighting += result;
     }
-    fragColor = vec4(lighting, 1.0);
+    vec3 rr = lighting;
+    float brightness = dot(rr, vec3(0.2126, 0.7152, 0.0722));
+    if(brightness > 1.0) {
+        hdrColor = vec4(rr, 1.0);
+    }else {
+        hdrColor = vec4(0.0, 0.0, 0.0, 1.0);
+    }
+    fragColor = vec4(rr, 1.0);
 }

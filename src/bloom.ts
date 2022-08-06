@@ -16,7 +16,7 @@ export class bloom {
     private wood: WebGLTexture | null = null;
     private containerBox: WebGLTexture | null = null;
     private frameBuffer: WebGLFramebuffer | null = null;
-    private colorTexture: WebGLTexture | null = null;
+    private colorTexture: WebGLTexture[] | null = null;
     private defaultVAO: WebGLVertexArrayObject | null = null;
     private frameVAO: WebGLVertexArrayObject | null = null;
     constructor(mesh: Mesh, camera: cameraOptions, ctx: WebGL2RenderingContext){
@@ -38,6 +38,7 @@ export class bloom {
             vec3.fromValues(0.0, 5.0, 0.0)
         ];
 
+        this.colorTexture = [];
         let cam = this.camera =  new Camera(camera);
         const { fov, aspectRatio, near, far } = camera.perspective;
         // cam.updateCameraVectors();
@@ -159,22 +160,24 @@ export class bloom {
         
         let frameBuffer = this.frameBuffer = this.ctx.createFramebuffer() as WebGLFramebuffer;
         this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, frameBuffer);
-        this.ctx.activeTexture(this.ctx.TEXTURE1);
-        let colorTexture = this.colorTexture =  this.ctx.createTexture() as WebGLTexture;
-        this.ctx.bindTexture(this.ctx.TEXTURE_2D, colorTexture);
         //获取webgl2.0扩展 支持浮点帧缓冲
         this.ctx.getExtension("EXT_color_buffer_float");
-    
-           
+        for (let i = 0; i < 2; i++) {
+            this.ctx.activeTexture(this.ctx.TEXTURE1 + i);
+            let colorTexture  =  this.ctx.createTexture() as WebGLTexture;
+            this.colorTexture?.push(colorTexture);
+            this.ctx.bindTexture(this.ctx.TEXTURE_2D, colorTexture);
             
-        this.ctx.texImage2D(this.ctx.TEXTURE_2D, 0, this.ctx.RGBA16F, this.ctx.canvas.width, this.ctx.canvas.height, 0, this.ctx.RGBA, this.ctx.FLOAT, null);
-        this.ctx.texParameteri(this.ctx.TEXTURE_2D, this.ctx.TEXTURE_MIN_FILTER, this.ctx.LINEAR);
-        this.ctx.texParameteri(this.ctx.TEXTURE_2D, this.ctx.TEXTURE_MAG_FILTER, this.ctx.LINEAR);
+            this.ctx.texImage2D(this.ctx.TEXTURE_2D, 0, this.ctx.RGBA16F, this.ctx.canvas.width, this.ctx.canvas.height, 0, this.ctx.RGBA, this.ctx.FLOAT, null);
+            this.ctx.texParameteri(this.ctx.TEXTURE_2D, this.ctx.TEXTURE_MIN_FILTER, this.ctx.LINEAR);
+            this.ctx.texParameteri(this.ctx.TEXTURE_2D, this.ctx.TEXTURE_MAG_FILTER, this.ctx.LINEAR);
 
-        this.ctx.texParameteri(this.ctx.TEXTURE_2D, this.ctx.TEXTURE_WRAP_S, this.ctx.CLAMP_TO_EDGE);
-        this.ctx.texParameteri(this.ctx.TEXTURE_2D, this.ctx.TEXTURE_WRAP_T, this.ctx.CLAMP_TO_EDGE);
+            this.ctx.texParameteri(this.ctx.TEXTURE_2D, this.ctx.TEXTURE_WRAP_S, this.ctx.CLAMP_TO_EDGE);
+            this.ctx.texParameteri(this.ctx.TEXTURE_2D, this.ctx.TEXTURE_WRAP_T, this.ctx.CLAMP_TO_EDGE);
 
-        this.ctx.framebufferTexture2D(this.ctx.FRAMEBUFFER, this.ctx.COLOR_ATTACHMENT0, this.ctx.TEXTURE_2D, colorTexture, 0);
+            this.ctx.framebufferTexture2D(this.ctx.FRAMEBUFFER, this.ctx.COLOR_ATTACHMENT0 + i, this.ctx.TEXTURE_2D, colorTexture, 0);
+        }
+        this.ctx.drawBuffers([this.ctx.COLOR_ATTACHMENT0, this.ctx.COLOR_ATTACHMENT1]);
 
         //RenderBuffer
         let renderBuffer = this.ctx.createRenderbuffer();
@@ -240,8 +243,11 @@ export class bloom {
         this.ctx.bindVertexArray(this.frameVAO);
         frame.use();
         this.ctx.activeTexture(this.ctx.TEXTURE1);
-        this.ctx.bindTexture(this.ctx.TEXTURE_2D, this.colorTexture);
+        this.ctx.bindTexture(this.ctx.TEXTURE_2D, (this.colorTexture as WebGLTexture[])[0]);
+        this.ctx.activeTexture(this.ctx.TEXTURE2);
+        this.ctx.bindTexture(this.ctx.TEXTURE_2D, (this.colorTexture as WebGLTexture[])[1]);
         frame.setInt("screenTexture", 1);
+        frame.setInt("hdrTexture", 2);
         this.ctx.drawArrays(this.ctx.TRIANGLES, 0 , 6);
 
         requestAnimationFrame(this.renderLoop.bind(this));
