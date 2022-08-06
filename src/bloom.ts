@@ -21,9 +21,9 @@ export class bloom {
         this.shaders = new Map();
         this.lightPositions = [
             vec3.fromValues(0.0, 0.5, 1.5),
-            vec3.fromValues(-4.0, 0.5, -3.0),
-            vec3.fromValues(3.0, 0.5, 1.0),
-            vec3.fromValues(-0.8, 2.4 ,-1.0)
+            vec3.fromValues(-8.0, 7.0, -3.0),
+            vec3.fromValues(6.0, 3.5, 1.0),
+            vec3.fromValues(-0.8, 5.4 ,-1.0)
         ];
 
         this.lightColors = [
@@ -35,8 +35,8 @@ export class bloom {
 
         let cam = this.camera =  new Camera(camera);
         const { fov, aspectRatio, near, far } = camera.perspective;
+        // cam.updateCameraVectors();
         cam.perspective(fov, aspectRatio, near, far);
-  
     }
 
     buildVao() {
@@ -135,6 +135,15 @@ export class bloom {
         this.buildVao();
         //compilorShader
         await this.compilorShader();
+
+        //fbo
+        // let fbo = this.ctx.createFramebuffer();
+        // this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, fbo);
+
+
+        // let fboTexture = this.ctx.createTexture();
+        // this.ctx.texImage2D()
+        // this.ctx.
     }
 
     renderLoop() {
@@ -172,9 +181,9 @@ export class bloom {
         lightShader.use();
         lightShader.setMatrix4x4("u_projection", this.camera.projection);
         lightShader.setMatrix4x4("u_view", this.camera.viewMatrix);
-        this.lightPositions.forEach((light,i) => {
-            lightShader.setMatrix4x4("u_model", mat4.multiply(mat4.create(), mat4.fromTranslation(mat4.create(), this.lightPositions[i]), mat4.fromScaling(mat4.create(), vec3.fromValues(0.25, 0.25, 0.25))));
-            lightShader.setVec3("lightColor", light);
+        this.lightPositions.forEach((lightPosition,i) => {
+            lightShader.setMatrix4x4("u_model", mat4.multiply(mat4.create(), mat4.fromScaling(mat4.create(), vec3.fromValues(0.25, 0.25, 0.25)), mat4.fromTranslation(mat4.create(), lightPosition), ));
+            lightShader.setVec3("lightColor", this.lightColors[i]);
             this.ctx.drawArrays(this.ctx.TRIANGLES, 0, 36);
         })
         requestAnimationFrame(this.renderLoop.bind(this));

@@ -95,7 +95,13 @@ export class Renderer {
     this.camera.lookAt({
       position: vec3.fromValues(-1, 5, 10),
       direction: vec3.fromValues(-0, -1, -1),
-      up: vec3.fromValues(0, 0.5, 0)
+      up: vec3.fromValues(0, 0.5, 0),
+      perspective: {
+        fov: 0.8,
+        aspectRatio: this.ctx.canvas.width / this.ctx.canvas.height,
+        near: 0.0896,
+        far: 20.6039
+      }
     })
     this.camera.perspective(
       0.8,

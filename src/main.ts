@@ -78,14 +78,14 @@ let cameraData: Record<string, cameraOptions> = {
         }
     },
     "bloom": {
-        "position": [0, 0, 5.0],
-        "direction": [0, 0, -1],
+        "position": [3.0, 3, 3.0],
+        "direction": [-1.0, 0, -1.0],
         "up": [0, 1, 0],
         perspective: {
             fov: glMatrix.toRadian(45),
             aspectRatio: _gl.canvas.width / _gl.canvas.height,
             near: 0.1,
-            far: 100
+            far: 100.0
         }
     }
 }

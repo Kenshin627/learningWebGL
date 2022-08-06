@@ -15,12 +15,13 @@ void main(){
     vec3 f_color = texture(diffuseTexture, texcoord).rgb;
     vec3 f_normal = normalize(normal);
     vec3 lighting = vec3(0.0);
+    vec3 ambinet = vec3(0.2, 0.2, 0.2);
     for(int i = 0; i < 4; i++) {
         vec3 lightDir = normalize(lights[i].Position - position);
         float diffuse = max(dot(lightDir, f_normal), 0.0);
         vec3 result = diffuse * f_color * lights[i].Color;
         float distance = length(position - lights[i].Position);
-        result *= 1.0 /  distance;
+        result *= 1.0 /  (distance * distance);
         lighting += result;
     }
     fragColor = vec4(lighting, 1.0);
