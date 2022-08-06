@@ -2,6 +2,7 @@ import { vec3, mat4, glMatrix } from "gl-matrix";
 import { Camera, cameraOptions } from "./gl/camera";
 import { Mesh } from "./gl/mesh";
 import { Shader } from "./gl/shader";
+import { quadScreen } from './models/mesh/meshData';
 
 export class bloom {
     private mesh: Mesh;
@@ -14,6 +15,10 @@ export class bloom {
     private models: mat4[] = [];
     private wood: WebGLTexture | null = null;
     private containerBox: WebGLTexture | null = null;
+    private frameBuffer: WebGLFramebuffer | null = null;
+    private colorTexture: WebGLTexture | null = null;
+    private defaultVAO: WebGLVertexArrayObject | null = null;
+    private frameVAO: WebGLVertexArrayObject | null = null;
     constructor(mesh: Mesh, camera: cameraOptions, ctx: WebGL2RenderingContext){
         this.ctx = ctx;
         this.mesh = mesh;
@@ -40,7 +45,7 @@ export class bloom {
     }
 
     buildVao() {
-        let vao = this.ctx.createVertexArray();
+        let vao = this.defaultVAO = this.ctx.createVertexArray();
         this.ctx.bindVertexArray(vao);
         let vbo = this.ctx.createBuffer();
         this.ctx.bindBuffer(this.ctx.ARRAY_BUFFER, vbo);
@@ -51,6 +56,20 @@ export class bloom {
         this.ctx.vertexAttribPointer(1, 3, this.ctx.FLOAT, false, 8 * 4, 3 * 4);
         this.ctx.enableVertexAttribArray(2);
         this.ctx.vertexAttribPointer(2, 2, this.ctx.FLOAT, false, 8 * 4, 6 * 4);
+        this.ctx.bindVertexArray(null);
+        this.ctx.bindBuffer(this.ctx.ARRAY_BUFFER, null);
+        
+        let vao2 = this.frameVAO = this.ctx.createVertexArray();
+        this.ctx.bindVertexArray(vao2);
+        let vbo2 = this.ctx.createBuffer();
+        this.ctx.bindBuffer(this.ctx.ARRAY_BUFFER, vbo2);
+        this.ctx.bufferData(this.ctx.ARRAY_BUFFER, new Float32Array(quadScreen.vertices), this.ctx.STATIC_DRAW);
+        this.ctx.enableVertexAttribArray(0);
+        this.ctx.vertexAttribPointer(0, 2, this.ctx.FLOAT, false, 4 * 4, 0);
+        this.ctx.enableVertexAttribArray(1);
+        this.ctx.vertexAttribPointer(1, 2, this.ctx.FLOAT, false, 4 * 4, 2 * 4);
+        this.ctx.bindVertexArray(null);
+        this.ctx.bindBuffer(this.ctx.ARRAY_BUFFER, null);
     }
 
     async setupScene(){
@@ -137,16 +156,41 @@ export class bloom {
         await this.compilorShader();
 
         //fbo
-        // let fbo = this.ctx.createFramebuffer();
-        // this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, fbo);
+        
+        let frameBuffer = this.frameBuffer = this.ctx.createFramebuffer() as WebGLFramebuffer;
+        this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, frameBuffer);
+        this.ctx.activeTexture(this.ctx.TEXTURE1);
+        let colorTexture = this.colorTexture =  this.ctx.createTexture() as WebGLTexture;
+        this.ctx.bindTexture(this.ctx.TEXTURE_2D, colorTexture);
+        //获取webgl2.0扩展 支持浮点帧缓冲
+        this.ctx.getExtension("EXT_color_buffer_float");
+    
+           
+            
+        this.ctx.texImage2D(this.ctx.TEXTURE_2D, 0, this.ctx.RGBA16F, this.ctx.canvas.width, this.ctx.canvas.height, 0, this.ctx.RGBA, this.ctx.FLOAT, null);
+        this.ctx.texParameteri(this.ctx.TEXTURE_2D, this.ctx.TEXTURE_MIN_FILTER, this.ctx.LINEAR);
+        this.ctx.texParameteri(this.ctx.TEXTURE_2D, this.ctx.TEXTURE_MAG_FILTER, this.ctx.LINEAR);
 
+        this.ctx.texParameteri(this.ctx.TEXTURE_2D, this.ctx.TEXTURE_WRAP_S, this.ctx.CLAMP_TO_EDGE);
+        this.ctx.texParameteri(this.ctx.TEXTURE_2D, this.ctx.TEXTURE_WRAP_T, this.ctx.CLAMP_TO_EDGE);
 
-        // let fboTexture = this.ctx.createTexture();
-        // this.ctx.texImage2D()
-        // this.ctx.
+        this.ctx.framebufferTexture2D(this.ctx.FRAMEBUFFER, this.ctx.COLOR_ATTACHMENT0, this.ctx.TEXTURE_2D, colorTexture, 0);
+
+        //RenderBuffer
+        let renderBuffer = this.ctx.createRenderbuffer();
+        this.ctx.bindRenderbuffer(this.ctx.RENDERBUFFER, renderBuffer);
+        this.ctx.renderbufferStorage(this.ctx.RENDERBUFFER, this.ctx.DEPTH24_STENCIL8, this.ctx.canvas.width, this.ctx.canvas.height);
+        this.ctx.framebufferRenderbuffer(this.ctx.FRAMEBUFFER, this.ctx.DEPTH_STENCIL_ATTACHMENT, this.ctx.RENDERBUFFER, renderBuffer);
+        let status = this.ctx.checkFramebufferStatus(this.ctx.FRAMEBUFFER);
+        if (status !== this.ctx.FRAMEBUFFER_COMPLETE) {
+            return;
+        }
+        this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, null);
     }
 
     renderLoop() {
+        this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, this.frameBuffer);
+        this.ctx.bindVertexArray(this.defaultVAO);
         this.ctx.clear(this.ctx.DEPTH_BUFFER_BIT | this.ctx.COLOR_BUFFER_BIT);
         this.ctx.clearColor(0.0, 0.0, 0.0, 0.0);
         this.ctx.viewport(0.0, 0.0, this.ctx.canvas.width, this.ctx.canvas.height);
@@ -186,20 +230,41 @@ export class bloom {
             lightShader.setVec3("lightColor", this.lightColors[i]);
             this.ctx.drawArrays(this.ctx.TRIANGLES, 0, 36);
         })
+
+        this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, null);
+        this.ctx.clear(this.ctx.DEPTH_BUFFER_BIT | this.ctx.COLOR_BUFFER_BIT);
+        this.ctx.clearColor(0.0, 0.0, 0.0, 0.0);
+        this.ctx.viewport(0.0, 0.0, this.ctx.canvas.width, this.ctx.canvas.height);
+        this.ctx.disable(this.ctx.DEPTH_TEST);
+        let frame = this.shaders.get("pass2") as Shader;
+        this.ctx.bindVertexArray(this.frameVAO);
+        frame.use();
+        this.ctx.activeTexture(this.ctx.TEXTURE1);
+        this.ctx.bindTexture(this.ctx.TEXTURE_2D, this.colorTexture);
+        frame.setInt("screenTexture", 1);
+        this.ctx.drawArrays(this.ctx.TRIANGLES, 0 , 6);
+
         requestAnimationFrame(this.renderLoop.bind(this));
     }
 
     async compilorShader(){
         let shader1 = './src/shaders/bloom';
-        let shader2 = './src/shaders/light'
+        let shader2 = './src/shaders/light';
+        let shader3 = './src/shaders/frameBuffer';
         let shader = new Shader(this.ctx);
         let shader22 = new Shader(this.ctx);
+        let shader33 = new Shader(this.ctx);
+
         this.shaders.set("bloom", shader);
         this.shaders.set("light", shader22);
+        this.shaders.set("pass2", shader33);
         (await shader.readShader(shader1)).compilerShader();
         (await shader22.readShader(shader2)).compilerShader();
+        (await shader33.readShader(shader3)).compilerShader();
         shader.use();
         shader.setInt("diffuseTexture", 0);
+        shader33.use();
+        shader33.setInt("screenTexture", 1);
     }
 
     bindTexture(url: string, idx: number){
