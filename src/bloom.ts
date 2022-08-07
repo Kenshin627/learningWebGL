@@ -16,9 +16,11 @@ export class bloom {
     private wood: WebGLTexture | null = null;
     private containerBox: WebGLTexture | null = null;
     private frameBuffer: WebGLFramebuffer | null = null;
-    private colorTexture: WebGLTexture[] | null = null;
+    private colorTexture: WebGLTexture[] = [];
     private defaultVAO: WebGLVertexArrayObject | null = null;
     private frameVAO: WebGLVertexArrayObject | null = null;
+    private pingpongFBO: WebGLFramebuffer[] = [];
+    private pingpongTexture: WebGLTexture[] = [];
     constructor(mesh: Mesh, camera: cameraOptions, ctx: WebGL2RenderingContext){
         this.ctx = ctx;
         this.mesh = mesh;
@@ -156,7 +158,7 @@ export class bloom {
         //compilorShader
         await this.compilorShader();
 
-        //fbo
+        //hdrfbo
         
         let frameBuffer = this.frameBuffer = this.ctx.createFramebuffer() as WebGLFramebuffer;
         this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, frameBuffer);
@@ -189,9 +191,28 @@ export class bloom {
             return;
         }
         this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, null);
+
+        //pingpong fbo
+        for (let i = 0; i < 2; i++) {
+            let pingpongfbo =  this.ctx.createFramebuffer() as WebGLFramebuffer;
+            this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, pingpongfbo);
+            let pingpongtexture = this.ctx.createTexture() as WebGLTexture;
+            this.ctx.bindTexture(this.ctx.TEXTURE_2D, pingpongtexture);
+            this.ctx.texImage2D(this.ctx.TEXTURE_2D, 0, this.ctx.RGB16F, this.ctx.canvas.width, this.ctx.canvas.height, 0, this.ctx.RGB, this.ctx.FLOAT, null);
+            this.ctx.texParameteri(this.ctx.TEXTURE_2D, this.ctx.TEXTURE_MIN_FILTER, this.ctx.LINEAR);
+            this.ctx.texParameteri(this.ctx.TEXTURE_2D, this.ctx.TEXTURE_MAG_FILTER, this.ctx.LINEAR);
+            this.ctx.texParameteri(this.ctx.TEXTURE_2D, this.ctx.TEXTURE_WRAP_S, this.ctx.CLAMP_TO_EDGE);
+            this.ctx.texParameteri(this.ctx.TEXTURE_2D, this.ctx.TEXTURE_WRAP_T, this.ctx.CLAMP_TO_EDGE);
+            this.ctx.framebufferTexture2D(this.ctx.FRAMEBUFFER, this.ctx.COLOR_ATTACHMENT0, this.ctx.TEXTURE_2D, pingpongtexture, 0);
+
+            this.pingpongFBO.push(pingpongfbo);
+            this.pingpongTexture.push(pingpongtexture);
+            
+        }
     }
 
     renderLoop() {
+        this.ctx.getExtension("EXT_color_buffer_float");
         this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, this.frameBuffer);
         this.ctx.bindVertexArray(this.defaultVAO);
         this.ctx.clear(this.ctx.DEPTH_BUFFER_BIT | this.ctx.COLOR_BUFFER_BIT);
@@ -234,20 +255,49 @@ export class bloom {
             this.ctx.drawArrays(this.ctx.TRIANGLES, 0, 36);
         })
 
-        this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, null);
+        // this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, null);
         this.ctx.clear(this.ctx.DEPTH_BUFFER_BIT | this.ctx.COLOR_BUFFER_BIT);
         this.ctx.clearColor(0.0, 0.0, 0.0, 0.0);
         this.ctx.viewport(0.0, 0.0, this.ctx.canvas.width, this.ctx.canvas.height);
         this.ctx.disable(this.ctx.DEPTH_TEST);
-        let frame = this.shaders.get("pass2") as Shader;
+
+        //2. pingpongfbo
+        let horizontal = true;
+        let first_iteration = true;
+        let blur = this.shaders.get("blur") as Shader;
+        let amount = 10;
+        let pingpongIdx = 0;
+        blur.use();
+        this.ctx.activeTexture(this.ctx.TEXTURE2);
+        for (let i = 0; i < amount; i++) {
+            this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, this.pingpongFBO[pingpongIdx]);
+            blur.setInt("horizontal", horizontal? 1:0);
+            blur.setInt("image", 2);
+            let pingpongtexIdx = pingpongIdx === 0? 1:0;
+            
+            this.ctx.bindTexture(this.ctx.TEXTURE_2D, first_iteration? this.colorTexture[1] : this.pingpongTexture[pingpongtexIdx]);
+            this.ctx.bindVertexArray(this.frameVAO);
+            this.ctx.drawArrays(this.ctx.TRIANGLES, 0, 6);
+            horizontal = !horizontal;
+            if (first_iteration) {
+                first_iteration = false;
+            }
+            pingpongIdx = pingpongIdx === 0? 1 : 0;
+        }
+        //3.
+        this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, null);
+        this.ctx.clear(this.ctx.DEPTH_BUFFER_BIT | this.ctx.COLOR_BUFFER_BIT);
+
+        let frame = this.shaders.get("finalBlur") as Shader;
         this.ctx.bindVertexArray(this.frameVAO);
         frame.use();
         this.ctx.activeTexture(this.ctx.TEXTURE1);
         this.ctx.bindTexture(this.ctx.TEXTURE_2D, (this.colorTexture as WebGLTexture[])[0]);
         this.ctx.activeTexture(this.ctx.TEXTURE2);
-        this.ctx.bindTexture(this.ctx.TEXTURE_2D, (this.colorTexture as WebGLTexture[])[1]);
-        frame.setInt("screenTexture", 1);
-        frame.setInt("hdrTexture", 2);
+        this.ctx.bindTexture(this.ctx.TEXTURE_2D, this.pingpongTexture[1]);
+        frame.setInt("scene", 1);
+        frame.setInt("bloomBlur", 2);
+        frame.setFloat("exposure", .003);
         this.ctx.drawArrays(this.ctx.TRIANGLES, 0 , 6);
 
         requestAnimationFrame(this.renderLoop.bind(this));
@@ -256,21 +306,26 @@ export class bloom {
     async compilorShader(){
         let shader1 = './src/shaders/bloom';
         let shader2 = './src/shaders/light';
-        let shader3 = './src/shaders/frameBuffer';
+        let shader3 = './src/shaders/finalBlur';
+        let shader4 = './src/shaders/blur';
         let shader = new Shader(this.ctx);
         let shader22 = new Shader(this.ctx);
         let shader33 = new Shader(this.ctx);
-
+        let shader44 = new Shader(this.ctx);
         this.shaders.set("bloom", shader);
         this.shaders.set("light", shader22);
-        this.shaders.set("pass2", shader33);
+        this.shaders.set("finalBlur", shader33);
+        this.shaders.set("blur", shader44);
         (await shader.readShader(shader1)).compilerShader();
         (await shader22.readShader(shader2)).compilerShader();
         (await shader33.readShader(shader3)).compilerShader();
+        (await shader44.readShader(shader4)).compilerShader();
         shader.use();
         shader.setInt("diffuseTexture", 0);
         shader33.use();
         shader33.setInt("screenTexture", 1);
+        shader44.use();
+        shader44.setInt("image", 2);
     }
 
     bindTexture(url: string, idx: number){
