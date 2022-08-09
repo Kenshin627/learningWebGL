@@ -13,7 +13,8 @@ void main() {
     vec3 sceneColor = texture(scene, TexCoords).rgb;
     vec3 bloomColor = texture(bloomBlur, TexCoords).rgb;
 
-    // sceneColor += bloomColor;
+    sceneColor += bloomColor;
     vec3 result = vec3(1.0) - exp(-sceneColor * exposure);
-    fragColor = vec4(bloomColor, 1.0);
+    result = pow(result, vec3(1.0 / gamma));
+    fragColor = vec4(result, 1.0);
 }

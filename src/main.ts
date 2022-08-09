@@ -78,7 +78,7 @@ let cameraData: Record<string, cameraOptions> = {
         }
     },
     "bloom": {
-        "position": [3.0, 3, 3.0],
+        "position": [3.0, 5, 3.0],
         "direction": [-1.0, 0, -1.0],
         "up": [0, 1, 0],
         perspective: {

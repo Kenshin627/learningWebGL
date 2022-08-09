@@ -20,12 +20,12 @@ void main(){
     // finalColor = vec4(c, 1.0); 
 
     //HDR
-    vec3 result = vec3(1.0) - exp(-c * .2);
-    result = pow(result, vec3(1.0 / 2.2));
+    // vec3 result = vec3(1.0) - exp(-c * .2);
+    // result = pow(result, vec3(1.0 / 2.2));
 
-    vec3 r1 = vec3(1.0) - exp(-h * .2);
-    r1 = pow(r1, vec3( 1.0 / 2.0));
-    finalColor = vec4(r1, 1.0);
+    // vec3 r1 = vec3(1.0) - exp(-h * .2);
+    // r1 = pow(r1, vec3( 1.0 / 2.0));
+    // finalColor = vec4(r1, 1.0);
     
     //kernel sharpen
     // float sharpen[9] = float[](
@@ -36,12 +36,12 @@ void main(){
     // finalColor = vec4(kernel(sharpen), 1.0);
 
     // kernel bloom
-    // float bloom[9] = float[](
-    //     1.0/16.0, 2.0/16.0, 1.0/16.0,
-    //     2.0/16.0, 4.0/16.0, 2.0/16.0,
-    //     1.0/16.0, 2.0/16.0, 1.0/16.0
-    // );
-    // finalColor = vec4(kernel(bloom), 1.0);
+    float bloom[9] = float[](
+        1.0/16.0, 2.0/16.0, 1.0/16.0,
+        2.0/16.0, 4.0/16.0, 2.0/16.0,
+        1.0/16.0, 2.0/16.0, 1.0/16.0
+    );
+    finalColor = vec4(kernel(bloom), 1.0);
 
     // kernel edge
     // float edgeDetection[9] = float[](

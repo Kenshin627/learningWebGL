@@ -27,7 +27,7 @@ export class bloom {
         this.cameraOpts = camera;
         this.shaders = new Map();
         this.lightPositions = [
-            vec3.fromValues(0.0, 0.5, 1.5),
+            vec3.fromValues(0.0, 1.5, 4),
             vec3.fromValues(-8.0, 7.0, -3.0),
             vec3.fromValues(6.0, 3.5, 1.0),
             vec3.fromValues(-0.8, 5.4 ,-1.0)
@@ -43,7 +43,6 @@ export class bloom {
         this.colorTexture = [];
         let cam = this.camera =  new Camera(camera);
         const { fov, aspectRatio, near, far } = camera.perspective;
-        // cam.updateCameraVectors();
         cam.perspective(fov, aspectRatio, near, far);
     }
 
@@ -121,20 +120,15 @@ export class bloom {
             mat4.fromScaling(mat4.create(), vec3.fromValues(0.5, 0.5, 0.5)), 
             mat4.fromTranslation(mat4.create(), vec3.fromValues(-3.0, 0.0, 0.0))
         ));
-
-
-
+        
         //texture
         let wood = './src/models/texture/wood.png';
         let container = './src/models/texture/container2.png';
-        // this.bindTexture(wood, 0);
-        // this.bindTexture(container, 1);
         const texture = this.wood  = this.ctx.createTexture();
         this.ctx.activeTexture(this.ctx.TEXTURE0);
         let img = new Image();
         img.src = wood;
         img.addEventListener("load", _ => {
-
             this.ctx.bindTexture(this.ctx.TEXTURE_2D, texture);
             this.ctx.texParameteri(this.ctx.TEXTURE_2D, this.ctx.TEXTURE_WRAP_S, this.ctx.REPEAT);
             this.ctx.texParameteri(this.ctx.TEXTURE_2D, this.ctx.TEXTURE_WRAP_T, this.ctx.REPEAT);
@@ -159,7 +153,6 @@ export class bloom {
         await this.compilorShader();
 
         //hdrfbo
-        
         let frameBuffer = this.frameBuffer = this.ctx.createFramebuffer() as WebGLFramebuffer;
         this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, frameBuffer);
         //获取webgl2.0扩展 支持浮点帧缓冲
@@ -191,14 +184,14 @@ export class bloom {
             return;
         }
         this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, null);
-
+        this.ctx.activeTexture(this.ctx.TEXTURE2);
         //pingpong fbo
         for (let i = 0; i < 2; i++) {
             let pingpongfbo =  this.ctx.createFramebuffer() as WebGLFramebuffer;
             this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, pingpongfbo);
             let pingpongtexture = this.ctx.createTexture() as WebGLTexture;
             this.ctx.bindTexture(this.ctx.TEXTURE_2D, pingpongtexture);
-            this.ctx.texImage2D(this.ctx.TEXTURE_2D, 0, this.ctx.RGB16F, this.ctx.canvas.width, this.ctx.canvas.height, 0, this.ctx.RGB, this.ctx.FLOAT, null);
+            this.ctx.texImage2D(this.ctx.TEXTURE_2D, 0, this.ctx.RGBA16F, this.ctx.canvas.width, this.ctx.canvas.height, 0, this.ctx.RGBA, this.ctx.FLOAT, null);
             this.ctx.texParameteri(this.ctx.TEXTURE_2D, this.ctx.TEXTURE_MIN_FILTER, this.ctx.LINEAR);
             this.ctx.texParameteri(this.ctx.TEXTURE_2D, this.ctx.TEXTURE_MAG_FILTER, this.ctx.LINEAR);
             this.ctx.texParameteri(this.ctx.TEXTURE_2D, this.ctx.TEXTURE_WRAP_S, this.ctx.CLAMP_TO_EDGE);
@@ -207,41 +200,40 @@ export class bloom {
 
             this.pingpongFBO.push(pingpongfbo);
             this.pingpongTexture.push(pingpongtexture);
-            
+            this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, null);
         }
     }
 
     renderLoop() {
-        this.ctx.getExtension("EXT_color_buffer_float");
+        
         this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, this.frameBuffer);
         this.ctx.bindVertexArray(this.defaultVAO);
         this.ctx.clear(this.ctx.DEPTH_BUFFER_BIT | this.ctx.COLOR_BUFFER_BIT);
         this.ctx.clearColor(0.0, 0.0, 0.0, 0.0);
         this.ctx.viewport(0.0, 0.0, this.ctx.canvas.width, this.ctx.canvas.height);
         this.ctx.enable(this.ctx.DEPTH_TEST);
-        // this.ctx.enable(this.ctx.STENCIL_TEST);
-        // this.ctx.enable(this.ctx.CULL_FACE);
-        this.ctx.disable(this.ctx.CULL_FACE);
+        this.ctx.enable(this.ctx.CULL_FACE);
         const bloomShader = this.shaders.get("bloom") as Shader;
 
         bloomShader.use();
         bloomShader.setMatrix4x4("u_projection", this.camera.projection);
         bloomShader.setMatrix4x4("u_view", this.camera.viewMatrix);
-        // this.ctx.activeTexture(0);
-        // this.bindTexture(this.ctx.TEXTURE_2D, )
         for (let i = 0; i < this.lightPositions.length; i++) {
             bloomShader.setVec3(`lights[${i}].Position`, this.lightPositions[i]);
             bloomShader.setVec3(`lights[${i}].Color`, this.lightColors[i]);
         }
+        this.ctx.activeTexture(this.ctx.TEXTURE0);
         this.models.forEach((model,idx) => {
             if (idx === 0) {
                 this.ctx.bindTexture(this.ctx.TEXTURE_2D, this.wood);
             }else {
                 this.ctx.bindTexture(this.ctx.TEXTURE_2D, this.containerBox);
             }
+            
             let normalMatrix = mat4.transpose(mat4.create(), mat4.invert(mat4.create(), model));
             bloomShader.setMatrix4x4("u_model", model);
             bloomShader.setMatrix4x4("U_normalMatrix", normalMatrix);
+            bloomShader.setInt("diffuseTexture", 0);
             this.ctx.drawArrays(this.ctx.TRIANGLES, 0, 36);
         })
         //lights
@@ -255,36 +247,40 @@ export class bloom {
             this.ctx.drawArrays(this.ctx.TRIANGLES, 0, 36);
         })
 
-        // this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, null);
+        this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, null);
         this.ctx.clear(this.ctx.DEPTH_BUFFER_BIT | this.ctx.COLOR_BUFFER_BIT);
         this.ctx.clearColor(0.0, 0.0, 0.0, 0.0);
         this.ctx.viewport(0.0, 0.0, this.ctx.canvas.width, this.ctx.canvas.height);
         this.ctx.disable(this.ctx.DEPTH_TEST);
 
         //2. pingpongfbo
-        let horizontal = true;
+        let idx = 0;
+        let horizontal = 1;
         let first_iteration = true;
         let blur = this.shaders.get("blur") as Shader;
         let amount = 10;
-        let pingpongIdx = 0;
+        
         blur.use();
-        this.ctx.activeTexture(this.ctx.TEXTURE2);
+       
         for (let i = 0; i < amount; i++) {
-            this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, this.pingpongFBO[pingpongIdx]);
-            blur.setInt("horizontal", horizontal? 1:0);
-            blur.setInt("image", 2);
-            let pingpongtexIdx = pingpongIdx === 0? 1:0;
-            
-            this.ctx.bindTexture(this.ctx.TEXTURE_2D, first_iteration? this.colorTexture[1] : this.pingpongTexture[pingpongtexIdx]);
+            this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, this.pingpongFBO[horizontal]);
+            this.ctx.clearColor(0,0,0,0);
+            this.ctx.clear(this.ctx.DEPTH_BUFFER_BIT | this.ctx.COLOR_BUFFER_BIT);
+            this.ctx.viewport(0.0, 0.0, this.ctx.canvas.width, this.ctx.canvas.height);
             this.ctx.bindVertexArray(this.frameVAO);
+            this.ctx.activeTexture(this.ctx.TEXTURE2);
+            blur.setInt("horizontal", horizontal);
+            this.ctx.bindTexture(this.ctx.TEXTURE_2D, first_iteration? this.colorTexture[1] : this.pingpongTexture[idx]);
+            blur.setInt("image", 2);
             this.ctx.drawArrays(this.ctx.TRIANGLES, 0, 6);
-            horizontal = !horizontal;
+            horizontal = horizontal === 1?0 : 1;
+            idx = idx === 1? 0 : 1;
             if (first_iteration) {
                 first_iteration = false;
             }
-            pingpongIdx = pingpongIdx === 0? 1 : 0;
+            this.ctx.bindVertexArray(null);
         }
-        //3.
+        //3. mix
         this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, null);
         this.ctx.clear(this.ctx.DEPTH_BUFFER_BIT | this.ctx.COLOR_BUFFER_BIT);
 
@@ -294,10 +290,10 @@ export class bloom {
         this.ctx.activeTexture(this.ctx.TEXTURE1);
         this.ctx.bindTexture(this.ctx.TEXTURE_2D, (this.colorTexture as WebGLTexture[])[0]);
         this.ctx.activeTexture(this.ctx.TEXTURE2);
-        this.ctx.bindTexture(this.ctx.TEXTURE_2D, this.pingpongTexture[1]);
+        this.ctx.bindTexture(this.ctx.TEXTURE_2D, this.pingpongTexture[0]);
         frame.setInt("scene", 1);
         frame.setInt("bloomBlur", 2);
-        frame.setFloat("exposure", .003);
+        frame.setFloat("exposure", 0.1);
         this.ctx.drawArrays(this.ctx.TRIANGLES, 0 , 6);
 
         requestAnimationFrame(this.renderLoop.bind(this));
@@ -328,7 +324,7 @@ export class bloom {
         shader44.setInt("image", 2);
     }
 
-    bindTexture(url: string, idx: number){
+    bindTexture(url: string){
         const texture  = this.ctx.createTexture();
         let img = new Image();
         img.src = url;
