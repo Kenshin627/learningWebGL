@@ -35,14 +35,14 @@ export class bloom {
 
         this.lightColors = [
             vec3.fromValues(5.0 ,5.0, 5.0),
-            vec3.fromValues(10.0, 0.0, 0.0),
+            vec3.fromValues(20.0, 0.0, 0.0),
             vec3.fromValues(0.0, 0.0, 15.0),
-            vec3.fromValues(0.0, 5.0, 0.0)
+            vec3.fromValues(0.0, 15.0, 0.0)
         ];
 
         this.colorTexture = [];
-        let cam = this.camera =  new Camera(camera);
-        const { fov, aspectRatio, near, far } = camera.perspective;
+        let cam = this.camera =  new Camera(this.cameraOpts);
+        const { fov, aspectRatio, near, far } = this.cameraOpts.perspective;
         cam.perspective(fov, aspectRatio, near, far);
     }
 
@@ -120,7 +120,7 @@ export class bloom {
             mat4.fromScaling(mat4.create(), vec3.fromValues(0.5, 0.5, 0.5)), 
             mat4.fromTranslation(mat4.create(), vec3.fromValues(-3.0, 0.0, 0.0))
         ));
-        
+
         //texture
         let wood = './src/models/texture/wood.png';
         let container = './src/models/texture/container2.png';
@@ -293,7 +293,7 @@ export class bloom {
         this.ctx.bindTexture(this.ctx.TEXTURE_2D, this.pingpongTexture[0]);
         frame.setInt("scene", 1);
         frame.setInt("bloomBlur", 2);
-        frame.setFloat("exposure", 0.1);
+        frame.setFloat("exposure", 1.5);
         this.ctx.drawArrays(this.ctx.TRIANGLES, 0 , 6);
 
         requestAnimationFrame(this.renderLoop.bind(this));

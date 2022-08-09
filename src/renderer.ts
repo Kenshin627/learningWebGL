@@ -66,11 +66,15 @@ export class Renderer {
                 far: 1000
             }
         }
+        let { fov, aspectRatio, near, far } = cameraOpts?.perspective as { fov: number, aspectRatio: number, near: number, far: number }
         this.camera = new Camera(cameraOpts);
         if (camera) {
             this.camera = new Camera(camera);
+            fov = camera.perspective.fov;
+            aspectRatio = camera.perspective.aspectRatio;
+            near = camera.perspective.near;
+            far = camera.perspective.far;
         }
-        const { fov, aspectRatio, near, far } = camera?.perspective as { fov: number, aspectRatio: number, near: number, far: number };
         this.camera.perspective(fov, aspectRatio, near, far);
 
         ////TODO:PROGRAM
