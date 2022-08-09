@@ -21,6 +21,7 @@ export class bloom {
     private frameVAO: WebGLVertexArrayObject | null = null;
     private pingpongFBO: WebGLFramebuffer[] = [];
     private pingpongTexture: WebGLTexture[] = [];
+    private rotationRadian: number = 0;
     constructor(mesh: Mesh, camera: cameraOptions, ctx: WebGL2RenderingContext){
         this.ctx = ctx;
         this.mesh = mesh;
@@ -205,7 +206,6 @@ export class bloom {
     }
 
     renderLoop() {
-        
         this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, this.frameBuffer);
         this.ctx.bindVertexArray(this.defaultVAO);
         this.ctx.clear(this.ctx.DEPTH_BUFFER_BIT | this.ctx.COLOR_BUFFER_BIT);
@@ -229,7 +229,6 @@ export class bloom {
             }else {
                 this.ctx.bindTexture(this.ctx.TEXTURE_2D, this.containerBox);
             }
-            
             let normalMatrix = mat4.transpose(mat4.create(), mat4.invert(mat4.create(), model));
             bloomShader.setMatrix4x4("u_model", model);
             bloomShader.setMatrix4x4("U_normalMatrix", normalMatrix);

@@ -204,7 +204,7 @@ export class Renderer {
         //Varibles
         let normalMatrix = mat4.create();
         
-        // mat4.fromYRotation(modelMatrix, rotationRadian);
+        mat4.fromYRotation(modelMatrix, rotationRadian);
         mat4.transpose(normalMatrix, mat4.invert(normalMatrix,modelMatrix));
 
         this._shader?.use();
