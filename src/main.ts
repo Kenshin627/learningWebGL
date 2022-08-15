@@ -107,8 +107,8 @@ d?.addEventListener("click", async (e) => {
     }
     else if(key === "pbr") {
         let pbr = new PBR(_gl, {
-            "position": [0, 0, 3],
-            "direction" : [0, 0,1],
+            "position": [0, 0, 10],
+            "direction" : [0, 0, -1],
             "up": [0, 1, 0],
             perspective: {
                 fov: glMatrix.toRadian(45),

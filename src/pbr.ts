@@ -39,7 +39,7 @@ export class PBR {
         await this.compolorShader();
         this.buildVAO();
         this.ctx.enable(this.ctx.DEPTH_TEST);
-        this.ctx.enable(this.ctx.CULL_FACE);
+        // this.ctx.enable(this.ctx.CULL_FACE);
     }
 
     async compolorShader() {
@@ -65,9 +65,9 @@ export class PBR {
             for (let j = 0; j < y_segment; j++) {
                let xSegment = i / x_segment;
                let ySegment = j / y_segment;
-               let xPos = Math.cos(x_segment * 2.0 * Math.PI) * Math.sin(y_segment * Math.PI);
-               let yPos = Math.cos(y_segment * Math.PI);
-               let zPos = Math.sin(x_segment * 2.0 * Math.PI) * Math.sin(y_segment * Math.PI);
+               let xPos = Math.cos(xSegment * 2.0 * Math.PI) * Math.sin(ySegment * Math.PI);
+               let yPos = Math.cos(ySegment * Math.PI);
+               let zPos = Math.sin(xSegment * 2.0 * Math.PI) * Math.sin(ySegment * Math.PI);
                positions.push(vec3.fromValues(xPos, yPos, zPos));
                uvs.push(vec2.fromValues(xSegment, ySegment));
                normals.push(vec3.fromValues(xPos, yPos, zPos));
@@ -134,6 +134,8 @@ export class PBR {
         this.ctx.viewport(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
         this.ctx.clear(this.ctx.DEPTH_BUFFER_BIT | this.ctx.COLOR_BUFFER_BIT);
         this.ctx.clearColor(0.1, 0.1, 0.1, 1.0);
+
+        this.ctx.bindVertexArray(this.VAO);
         this.pbrShader.setMatrix4x4("u_projection", this.camera.projection);
         this.pbrShader.setMatrix4x4("u_view", this.camera.viewMatrix);
         this.pbrShader.setVec3("camPos", this.camera.position);
