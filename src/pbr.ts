@@ -21,7 +21,7 @@ export class PBR {
         this.ctx = ctx;
         this.pbrShader = new Shader(this.ctx);
         let cam = this.camera = new Camera(this.cameraOpts);
-        // cam.updateCameraVectors();
+        cam.updateCameraVectors();
         const { fov, aspectRatio, near, far } = this.cameraOpts.perspective;
         cam.perspective(fov, aspectRatio, near, far);
         this.lightsPosition.push(vec3.fromValues(-10.0,  10.0, 10.0));
@@ -130,6 +130,8 @@ export class PBR {
     }
 
     renderLoop() {
+        this.camera.yaw += 1;
+        this.camera.updateCameraVectors();
         this.renderTime += 0.01;
         this.ctx.viewport(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
         this.ctx.clear(this.ctx.DEPTH_BUFFER_BIT | this.ctx.COLOR_BUFFER_BIT);
