@@ -116,7 +116,7 @@ export class PBR {
         this.ctx.bufferData(this.ctx.ARRAY_BUFFER, new Float32Array(data), this.ctx.STATIC_DRAW);
 
         this.ctx.bindBuffer(this.ctx.ELEMENT_ARRAY_BUFFER, ebo);
-        this.ctx.bufferData(this.ctx.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), this.ctx.STATIC_DRAW);
+        this.ctx.bufferData(this.ctx.ELEMENT_ARRAY_BUFFER, new Uint32Array(indices), this.ctx.STATIC_DRAW);
 
         let stride = ( 3 + 2 + 3 ) * 4;
         this.ctx.enableVertexAttribArray(0);
@@ -155,7 +155,7 @@ export class PBR {
                 let model = mat4.create();
                 mat4.fromTranslation(model, vec3.fromValues((col - (this.nCols / 2)) * spacing, (row - this.nRows / 2) * spacing, 0.0));
                 this.pbrShader.setMatrix4x4("u_model", model);
-                this.ctx.drawElements(this.ctx.TRIANGLE_STRIP, this.indicesCount, this.ctx.UNSIGNED_SHORT, 0);
+                this.ctx.drawElements(this.ctx.TRIANGLE_STRIP, this.indicesCount, this.ctx.UNSIGNED_INT, 0);
             }            
         }
         requestAnimationFrame(this.renderLoop.bind(this));
