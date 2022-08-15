@@ -21,7 +21,7 @@ export class PBR {
         this.ctx = ctx;
         this.pbrShader = new Shader(this.ctx);
         let cam = this.camera = new Camera(this.cameraOpts);
-        cam.updateCameraVectors();
+        // cam.updateCameraVectors();
         const { fov, aspectRatio, near, far } = this.cameraOpts.perspective;
         cam.perspective(fov, aspectRatio, near, far);
         this.lightsPosition.push(vec3.fromValues(-10.0,  10.0, 10.0));
@@ -45,7 +45,7 @@ export class PBR {
     async compolorShader() {
         (await this.pbrShader.readShader("./src/shaders/pbr")).compilerShader();
         this.pbrShader.use();
-        this.pbrShader.setVec3("albedo", vec3.fromValues(0.6, 0.0, 0.0));
+        this.pbrShader.setVec3("albedo", vec3.fromValues(1.0, 0.0, 1.0));
         this.pbrShader.setFloat("ao", 1.0);
 
     }
@@ -61,8 +61,8 @@ export class PBR {
         const indices = [];
         const x_segment = 64;
         const y_segment = 64;
-        for (let i = 0; i < x_segment; i++) {
-            for (let j = 0; j < y_segment; j++) {
+        for (let i = 0; i <= x_segment; i++) {
+            for (let j = 0; j <= y_segment; j++) {
                let xSegment = i / x_segment;
                let ySegment = j / y_segment;
                let xPos = Math.cos(xSegment * 2.0 * Math.PI) * Math.sin(ySegment * Math.PI);
@@ -75,9 +75,9 @@ export class PBR {
         }
 
         let oddRow = false;
-        for (let y = 0; y < y_segment; y++) {
+        for (let y = 0; y < y_segment; ++y) {
             if (!oddRow) {
-                for (let x = 0; x < x_segment; x++) {
+                for (let x = 0; x <= x_segment; x++) {
                    indices.push(y * (x_segment + 1) + x);
                    indices.push((y+1) * (x_segment +1) + x);
                 }

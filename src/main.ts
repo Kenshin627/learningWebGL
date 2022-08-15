@@ -107,7 +107,7 @@ d?.addEventListener("click", async (e) => {
     }
     else if(key === "pbr") {
         let pbr = new PBR(_gl, {
-            "position": [0, 0, 25],
+            "position": [-10, 0, 25],
             "direction" : [0, 0, -1],
             "up": [0, 1, 0],
             perspective: {

@@ -16,7 +16,7 @@ in vec3 normal;
 
 out vec4 FragColor;
 
-const float PI = 3.14159265358979;
+const float PI = 3.14159265359;
 
 float DistributionGGX(vec3 N, vec3 H, float roughness);
 float GeometrySchlickGGX(float NdotV, float roughness);
@@ -37,17 +37,17 @@ void main() {
         vec3 L = normalize(lightPositions[i] - fragPos);
         vec3 H = normalize(L + V);
         float distance = length(lightPositions[i] - fragPos);
-        float attenuation = 1.0 / distance * distance;
+        float attenuation = 1.0 / (distance * distance);
         vec3 radiance = lightColors[i]  * attenuation;
 
         //cook-torrance BRDF
         float NDF = DistributionGGX(N, H, roughness);
         float G = GeometrySmith(N, V, L, roughness);
-        vec3 F = fresnelSchlick(max(dot(H, V), 0.0), FO);
+        vec3 F = fresnelSchlick(clamp(dot(H, V), 0.0, 1.0), FO);
 
         vec3 ks = F;
         vec3 kd = vec3(1.0) - ks;
-        kd *= 1.0 - metallic;
+        kd = (1.0 - metallic) * kd;
 
         vec3 numerator = NDF * G * F;
         float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.000001;
@@ -65,7 +65,8 @@ void main() {
 }
 
 float DistributionGGX(vec3 N, vec3 H, float roughness){
-    float a2 = roughness * roughness;
+    float a = roughness * roughness;
+    float a2 = a * a;
     float NdotH = max(dot(N, H), 0.0);
     float NdotH2 = NdotH * NdotH;
     float nom = a2;
@@ -76,7 +77,7 @@ float DistributionGGX(vec3 N, vec3 H, float roughness){
 
 float GeometrySchlickGGX(float NdotV, float roughness) {
     float r = roughness + 1.0;
-    float k = r * r / 8.0;
+    float k = (r * r) / 8.0;
     float nom = NdotV;
     float denom = NdotV * (1.0 - k) + k;
     // return NdotV / (NdotV * (1.0 -k) + k);
