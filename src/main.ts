@@ -6,6 +6,7 @@ import { GLTFLoader } from "./gl/loaders/sceneLoader/index";
 import { cameraOptions } from './gl/camera';
 import { glMatrix } from 'gl-matrix';
 import { bloom } from './bloom';
+import { PBR } from './pbr';
 
 const container = document.querySelector("#webglBox")as HTMLCanvasElement;
 let renderer = new Renderer(container);
@@ -103,6 +104,21 @@ d?.addEventListener("click", async (e) => {
         let bloom1 = new bloom(meshes[key], cameraData[key], _gl);
         await bloom1.setupScene();
         bloom1.renderLoop();
+    }
+    else if(key === "pbr") {
+        let pbr = new PBR(_gl, {
+            "position": [0, 0, 3],
+            "direction" : [0, 0,1],
+            "up": [0, 1, 0],
+            perspective: {
+                fov: glMatrix.toRadian(45),
+                aspectRatio: _gl.canvas.width / _gl.canvas.height,
+                near: 0.1,
+                far: 100.0
+            }
+        });
+        await pbr.setupScene();
+        pbr.renderLoop();
     }
     else {
         if (meshes[key]) {
