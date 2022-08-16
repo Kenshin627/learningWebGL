@@ -123,7 +123,7 @@ d?.addEventListener("click", async (e) => {
     }
     else if(key === "pbr-texture") {
         let pbr_texture = new PBR_TEXTURE(_gl, {
-            "position": [-10, 0, 25],
+            "position": [-3, -3, 2],
             "direction" : [0, 0, -1],
             "up": [0, 1, 0],
             perspective: {

@@ -180,16 +180,12 @@ export class PBR_TEXTURE {
             this.pbrShader.setVec3(`lightPositions[${i}]`, newPostion);
             this.pbrShader.setVec3(`lightColors[${i}]`, this.lightsColor[i]);
         }
-        for (let row = 0; row < this.nRows; row++) {
-            // this.pbrShader.setFloat("metallic", row / this.nRows);
-            for (let col = 0; col < this.nCols; col++) {
-                // this.pbrShader.setFloat("roughness", col / this.nCols);
-                let model = mat4.create();
-                mat4.fromTranslation(model, vec3.fromValues((col - (this.nCols / 2)) * spacing, (row - this.nRows / 2) * spacing, 0.0));
-                this.pbrShader.setMatrix4x4("u_model", model);
-                this.ctx.drawElements(this.ctx.TRIANGLE_STRIP, this.indicesCount, this.ctx.UNSIGNED_INT, 0);
-            }            
-        }
+       
+        let model = mat4.create();
+        mat4.fromTranslation(model, vec3.fromValues((3 - (this.nCols / 2)) * spacing, (4 - this.nRows / 2) * spacing, 0.0));
+        this.pbrShader.setMatrix4x4("u_model", model);
+        this.ctx.drawElements(this.ctx.TRIANGLE_STRIP, this.indicesCount, this.ctx.UNSIGNED_INT, 0);
+
         requestAnimationFrame(this.renderLoop.bind(this));
     }
 }
