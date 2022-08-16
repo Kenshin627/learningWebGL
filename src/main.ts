@@ -7,6 +7,7 @@ import { cameraOptions } from './gl/camera';
 import { glMatrix } from 'gl-matrix';
 import { bloom } from './bloom';
 import { PBR } from './pbr';
+import { PBR_TEXTURE } from './pbr_texture';
 
 const container = document.querySelector("#webglBox")as HTMLCanvasElement;
 let renderer = new Renderer(container);
@@ -119,6 +120,21 @@ d?.addEventListener("click", async (e) => {
         });
         await pbr.setupScene();
         pbr.renderLoop();
+    }
+    else if(key === "pbr-texture") {
+        let pbr_texture = new PBR_TEXTURE(_gl, {
+            "position": [-10, 0, 25],
+            "direction" : [0, 0, -1],
+            "up": [0, 1, 0],
+            perspective: {
+                fov: glMatrix.toRadian(45),
+                aspectRatio: _gl.canvas.width / _gl.canvas.height,
+                near: 0.1,
+                far: 100.0
+            }
+        })
+        await pbr_texture.setupScene();
+        pbr_texture.renderLoop();
     }
     else {
         if (meshes[key]) {
