@@ -58,6 +58,7 @@ export class PBR_TEXTURE {
             this.ctx.texParameteri(this.ctx.TEXTURE_2D, this.ctx.TEXTURE_WRAP_S, this.ctx.REPEAT);
             this.ctx.texParameteri(this.ctx.TEXTURE_2D, this.ctx.TEXTURE_WRAP_T, this.ctx.REPEAT);
             this.ctx.texImage2D(this.ctx.TEXTURE_2D, 0, this.ctx.RGB, img.width, img.height, 0, this.ctx.RGB, this.ctx.UNSIGNED_BYTE, img);
+            this.ctx.generateMipmap(this.ctx.TEXTURE_2D);
         })
     }
 
@@ -180,9 +181,9 @@ export class PBR_TEXTURE {
             this.pbrShader.setVec3(`lightColors[${i}]`, this.lightsColor[i]);
         }
         for (let row = 0; row < this.nRows; row++) {
-            this.pbrShader.setFloat("metallic", row / this.nRows);
+            // this.pbrShader.setFloat("metallic", row / this.nRows);
             for (let col = 0; col < this.nCols; col++) {
-                this.pbrShader.setFloat("roughness", col / this.nCols);
+                // this.pbrShader.setFloat("roughness", col / this.nCols);
                 let model = mat4.create();
                 mat4.fromTranslation(model, vec3.fromValues((col - (this.nCols / 2)) * spacing, (row - this.nRows / 2) * spacing, 0.0));
                 this.pbrShader.setMatrix4x4("u_model", model);

@@ -27,11 +27,26 @@ float GeometrySchlickGGX(float NdotV, float roughness);
 float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness);
 vec3 fresnelSchlick(float cosTheta, vec3 FO);
 
+vec3 getNormalFromMap() {
+    vec3 tangentNormal = texture(normalSampler, texcoord).xyz * 2.0 - 1.0;
+    
+    vec3 Q1  = dFdx(fragPos);
+    vec3 Q2  = dFdy(fragPos);
+    vec2 st1 = dFdx(texcoord);
+    vec2 st2 = dFdy(texcoord);
+
+    vec3 N   = normalize(normal);
+    vec3 T  = normalize(Q1*st2.t - Q2*st1.t);
+    vec3 B  = -normalize(cross(N, T));
+    mat3 TBN = mat3(T, B, N);
+
+    return normalize(TBN * tangentNormal);
+}
+
 void main() {
-    vec3 normalT = texture(normalSampler, texcoord).rgb;
-    vec3 N = normalize(normalT);
+    vec3 N = getNormalFromMap();
     vec3 V = normalize(camPos - fragPos);
-    vec3 albedo = texture(albedoSampler, texcoord).xyz;
+    vec3 albedo = pow(texture(albedoSampler, texcoord).rgb, vec3(2.2));
     float metallic = texture(metallicSampler, texcoord).r;
     float roughness = texture(roughnessSampler, texcoord).r;
 
@@ -68,7 +83,7 @@ void main() {
     vec3 color = ambient + Lo;
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0/2.2));
-    FragColor = vec4(albedo, 1.0);
+    FragColor = vec4(color, 1.0);
     // FragColor = vec4(1.0,1.0,1.0,1.0);
 }
 
