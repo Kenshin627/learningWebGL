@@ -8,6 +8,9 @@ import { glMatrix } from 'gl-matrix';
 import { bloom } from './bloom';
 import { PBR } from './pbr';
 import { PBR_TEXTURE } from './pbr_texture';
+import { Pixelate } from './pixelate';
+import { ColorCamp } from './colorCamp';
+import { ColorSpliter } from './colorSpliter';
 
 const container = document.querySelector("#webglBox")as HTMLCanvasElement;
 let renderer = new Renderer(container);
@@ -136,9 +139,20 @@ d?.addEventListener("click", async (e) => {
         await pbr_texture.setupScene();
         pbr_texture.renderLoop();
     }
-    else {
+    else if(key === "postProcess") {
         if (meshes[key]) {
-            renderer.compiler(key, meshes[key], cameraData[key]);
+            let postProcess = new Pixelate(container);
+            postProcess.compiler(key, meshes[key], cameraData[key]);
+        }
+    } else if(key === 'colorCamp') {
+        if (meshes[key]) {
+            let colorCamp = new ColorCamp(container);
+            colorCamp.compiler(key, meshes[key], cameraData[key]);
+        }
+    }else if(key === 'colorSpliter') {
+        if (meshes[key]) {
+            let colorSpliter = new ColorSpliter(container);
+            colorSpliter.compiler(key, meshes[key], cameraData[key]);
         }
     }
 })

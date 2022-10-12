@@ -27,6 +27,9 @@ n.bumpTexture = "./src/models/texture/normal_mapping_normal_map.png";
 const h = new Material(vec3.fromValues(0.8, 0.8, 0.8), vec3.fromValues(0.5, 0.5, 0.5), vec3.fromValues(1.0, 1.0, 1.0), 16);
 h.diffuseTexture = "./src/models/texture/wood.png";
 
+const glitch = new Material(vec3.fromValues(0.8, 0.8, 0.8), vec3.fromValues(0.5, 0.5, 0.5), vec3.fromValues(1.0, 1.0, 1.0), 16);
+glitch.diffuseTexture = './src/models/texture/mushishi.jpg'
+
 let cubeGeo = new Geometry([
     -50, -50, -50,  0.0, 0.0, 0.0, 0.0, -1,
     50, -50, -50,  1.0, 0.0, 0.0, 0.0, -1,
@@ -275,5 +278,107 @@ export const meshes: Record<string, Mesh> = {
         shader:"",
         material:h,
         modelMatrix: mat4.create()
+    },
+    "postProcess": {
+        geometry: new Geometry([
+            -100, -134.88 / 2, 0.0, 0.0, 0.0,
+            100, -134.88 / 2, 0.0, 1.0, 0.0,
+            100, 134.88 / 2, 0.0, 1.0, 1.0,
+            -100, -134.88 / 2, 0.0, 0.0, 0.0,
+            100, 134.88 / 2, 0.0, 1.0, 1.0,
+            -100, 134.88 / 2, 0.0, 0.0, 1.0
+        ],[
+            {
+                "key": "a_position",
+                "size": 3,
+                "offset": 0
+            },
+            {
+                "key": "a_texcoord",
+                "size": 2,
+                "offset": 3
+            }
+        ], 5, [
+            {
+                "key": "matrixLocation",
+                "func": "uniformMatrix4fv",
+                "data": ""
+            },
+            {
+                "key": "pixelateSize",
+                "func": "uniformMatrix4fv",
+                "data": 100
+            }
+        ]),
+        shader: "./src/shaders/glitchEffect",
+        material: glitch
+    },
+    "colorCamp": {
+        geometry: new Geometry([
+            -100, -134.88 / 2, 0.0, 0.0, 0.0,
+            100, -134.88 / 2, 0.0, 1.0, 0.0,
+            100, 134.88 / 2, 0.0, 1.0, 1.0,
+            -100, -134.88 / 2, 0.0, 0.0, 0.0,
+            100, 134.88 / 2, 0.0, 1.0, 1.0,
+            -100, 134.88 / 2, 0.0, 0.0, 1.0
+        ],[
+            {
+                "key": "a_position",
+                "size": 3,
+                "offset": 0
+            },
+            {
+                "key": "a_texcoord",
+                "size": 2,
+                "offset": 3
+            }
+        ], 5, [
+            {
+                "key": "matrixLocation",
+                "func": "uniformMatrix4fv",
+                "data": ""
+            },
+            {
+                "key": "pixelateSize",
+                "func": "uniformMatrix4fv",
+                "data": 100
+            }
+        ]),
+        shader: "./src/shaders/colorCamp",
+        material: glitch
+    },
+    "colorSpliter": {
+        geometry: new Geometry([
+            -100, -134.88 / 2, 0.0, 0.0, 0.0,
+            100, -134.88 / 2, 0.0, 1.0, 0.0,
+            100, 134.88 / 2, 0.0, 1.0, 1.0,
+            -100, -134.88 / 2, 0.0, 0.0, 0.0,
+            100, 134.88 / 2, 0.0, 1.0, 1.0,
+            -100, 134.88 / 2, 0.0, 0.0, 1.0
+        ],[
+            {
+                "key": "a_position",
+                "size": 3,
+                "offset": 0
+            },
+            {
+                "key": "a_texcoord",
+                "size": 2,
+                "offset": 3
+            }
+        ], 5, [
+            {
+                "key": "matrixLocation",
+                "func": "uniformMatrix4fv",
+                "data": ""
+            },
+            {
+                "key": "pixelateSize",
+                "func": "uniformMatrix4fv",
+                "data": 100
+            }
+        ]),
+        shader: "./src/shaders/rgbSpliter",
+        material: glitch
     }
 }

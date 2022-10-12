@@ -12,7 +12,7 @@ import { quadScreen } from './models/mesh/meshData';
 export type n3<T> = [T, T, T]
 
 const twoPass = ["frameBuffer", "hdr"];
-export class Renderer {
+export class Pixelate {
     private _gl: WebGL2RenderingContext;
     public _shader: Nullable<Shader> = null;
     private _quadScreenShader: Nullable<Shader> = null;
@@ -226,6 +226,9 @@ export class Renderer {
         this._shader?.setVec3("material.specular", material.specular);
         this._shader?.setVec3("material.ambient", material.ambient);
         this._shader?.setFloat("material.shininess", material.shininess);
+
+        this._shader?.setFloat("pixelateSize", 1000.0);
+        this._shader?.setFloat("ratio", 1 / 1.4348);
 
         this._shader?.setVec3("view_position", this.camera?.position as vec3);
 

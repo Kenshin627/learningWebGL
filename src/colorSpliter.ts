@@ -1,7 +1,7 @@
 import { Nullable } from './types/index';
 import { Shader } from './gl/shader';
 import { Camera, cameraOptions } from './gl/camera';
-import { glMatrix, mat4, vec3 } from 'gl-matrix';
+import { glMatrix, mat4, vec3, vec4 } from 'gl-matrix';
 import { DirectionLight } from './light/directionLight';
 import { Geometry } from './gl/geometry';
 import { Mesh } from './gl/mesh';
@@ -12,7 +12,7 @@ import { quadScreen } from './models/mesh/meshData';
 export type n3<T> = [T, T, T]
 
 const twoPass = ["frameBuffer", "hdr"];
-export class Renderer {
+export class ColorSpliter {
     private _gl: WebGL2RenderingContext;
     public _shader: Nullable<Shader> = null;
     private _quadScreenShader: Nullable<Shader> = null;
@@ -23,6 +23,8 @@ export class Renderer {
     private colorTexture: Nullable<WebGLTexture> = null;
     public camera: Nullable<Camera> = null;
     public light: Nullable<DirectionLight> = null;
+    public eclipsedTime: number = 0;
+    public start: number = 0;
     constructor(el: HTMLCanvasElement) {
         let glOpts: WebGLContextAttributes = {
             alpha: true,
@@ -134,6 +136,7 @@ export class Renderer {
         if (material.bumpTexture) {
             this.bindTexture(material.bumpTexture, this._gl.TEXTURE3);
         }
+        this.start = Date.now();
         this.draw(key, geometry, material, 0, modelMatrix as mat4);
     }
     
@@ -161,6 +164,7 @@ export class Renderer {
     }
 
     draw(key: string, data: Geometry, material: Material, rotationRadian: number, modelMatrix: mat4) {
+        this.eclipsedTime = Date.now() - this.start;
         rotationRadian += (glMatrix.toRadian(15)) / 60;
          if (twoPass.includes(key)) {
             //pass1
@@ -226,6 +230,9 @@ export class Renderer {
         this._shader?.setVec3("material.specular", material.specular);
         this._shader?.setVec3("material.ambient", material.ambient);
         this._shader?.setFloat("material.shininess", material.shininess);
+
+        this._shader?.setFloat("u_time", this.eclipsedTime);
+        this._shader?.setFloat("u_colorDrift", 0.4);
 
         this._shader?.setVec3("view_position", this.camera?.position as vec3);
 
