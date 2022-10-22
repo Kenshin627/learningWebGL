@@ -11,6 +11,7 @@ import { PBR_TEXTURE } from './pbr_texture';
 import { Pixelate } from './pixelate';
 import { ColorCamp } from './colorCamp';
 import { ColorSpliter } from './colorSpliter';
+import { EdgeDetection } from './edgeDetection';
 
 const container = document.querySelector("#webglBox")as HTMLCanvasElement;
 let renderer = new Renderer(container);
@@ -146,13 +147,18 @@ d?.addEventListener("click", async (e) => {
         }
     } else if(key === 'colorCamp') {
         if (meshes[key]) {
-            let colorCamp = new ColorCamp(container);
+        let colorCamp = new ColorCamp(container);
             colorCamp.compiler(key, meshes[key], cameraData[key]);
         }
     }else if(key === 'colorSpliter') {
         if (meshes[key]) {
             let colorSpliter = new ColorSpliter(container);
             colorSpliter.compiler(key, meshes[key], cameraData[key]);
+        }
+    }else if(key === "edgeDetection") {
+        if (meshes[key]) {
+            let edgeDetection = new EdgeDetection(container);
+            edgeDetection.compiler(key, meshes[key], cameraData[key]);
         }
     }
 })

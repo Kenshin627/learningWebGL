@@ -380,5 +380,39 @@ export const meshes: Record<string, Mesh> = {
         ]),
         shader: "./src/shaders/rgbSpliter",
         material: glitch
+    },
+    "edgeDetection": {
+        geometry: new Geometry([
+            -100, -134.88 / 2, 0.0, 0.0, 0.0,
+            100, -134.88 / 2, 0.0, 1.0, 0.0,
+            100, 134.88 / 2, 0.0, 1.0, 1.0,
+            -100, -134.88 / 2, 0.0, 0.0, 0.0,
+            100, 134.88 / 2, 0.0, 1.0, 1.0,
+            -100, 134.88 / 2, 0.0, 0.0, 1.0
+        ],[
+            {
+                "key": "a_position",
+                "size": 3,
+                "offset": 0
+            },
+            {
+                "key": "a_texcoord",
+                "size": 2,
+                "offset": 3
+            }
+        ], 5, [
+            {
+                "key": "matrixLocation",
+                "func": "uniformMatrix4fv",
+                "data": ""
+            },
+            {
+                "key": "pixelateSize",
+                "func": "uniformMatrix4fv",
+                "data": 100
+            }
+        ]),
+        shader: "./src/shaders/GlitchArt/RgbSpliter",
+        material: glitch
     }
 }
