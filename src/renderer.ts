@@ -14,7 +14,7 @@ export type n3<T> = [T, T, T]
 const twoPass = ["frameBuffer", "hdr"];
 export class Renderer {
     private _gl: WebGL2RenderingContext;
-    private _shader: Nullable<Shader> = null;
+    public _shader: Nullable<Shader> = null;
     private _quadScreenShader: Nullable<Shader> = null;
     private _currentRAF: Nullable<number> = null;
     private framebufferVao: Nullable<WebGLVertexArrayObject> = null;

@@ -1,5 +1,5 @@
 import { Nullable } from "../types";
-import { vec3, mat4 } from "gl-matrix";
+import { vec3, vec4, mat4 } from "gl-matrix";
 
 export class Shader {
     public vertexCode: string = "";
@@ -77,6 +77,13 @@ export class Shader {
         const uniformLocation = this._ctx.getUniformLocation(this.program as WebGLProgram, name);
         if (uniformLocation) {
             this._ctx.uniform3f(uniformLocation, val[0], val[1], val[2]);
+        }
+    }
+
+    setVec4(name: string, val: vec4) {
+        const uniformLocation = this._ctx.getUniformLocation(this.program as WebGLProgram, name);
+        if (uniformLocation) {
+            this._ctx.uniform4f(uniformLocation, val[0], val[1], val[2], val[3]);
         }
     }
 
